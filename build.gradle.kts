@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.sparetimedevs"
-version = "0.0.1-EXPERIMENTAL-k23p9gp"
+version = "0.0.1-EXPERIMENTAL-cew82ks"
 
 repositories {
     mavenCentral()

@@ -18,17 +18,16 @@ package com.sparetimedevs.bow.test.generator
 
 import com.microsoft.azure.functions.HttpRequestMessage
 import io.kotlintest.properties.Gen
-import java.util.Optional
 
-internal class HttpRequestMessageGenerator : Gen<HttpRequestMessage<Optional<String>>> {
-    override fun constants(): List<HttpRequestMessage<Optional<String>>> = emptyList()
-    override fun random(): Sequence<HttpRequestMessage<Optional<String>>> = generateSequence {
+internal class HttpRequestMessageGenerator : Gen<HttpRequestMessage<String?>> {
+    override fun constants(): List<HttpRequestMessage<String?>> = emptyList()
+    override fun random(): Sequence<HttpRequestMessage<String?>> = generateSequence {
         HttpRequestMessageTestImpl(
                 Gen.uri().random().first(),
                 Gen.httpMethod().random().first(),
                 Gen.mapOfStringAndStringGenerator().random().first(),
                 Gen.mapOfStringAndStringGenerator().random().first(),
-                Gen.optionalString().random().first()
+                Gen.string().orNull().random().first()
         )
     }
 }

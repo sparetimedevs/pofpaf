@@ -23,17 +23,16 @@ import arrow.fx.unsafeRunSync
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
-import java.util.Optional
 
 fun <E, A> handleHttp(
-        request: HttpRequestMessage<Optional<String>>,
+        request: HttpRequestMessage<String?>,
         context: ExecutionContext,
         domainLogic: IO<E, A>,
-        handleSuccess: (request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, a: A) -> IO<Nothing, HttpResponseMessage> =
+        handleSuccess: (request: HttpRequestMessage<String?>, context: ExecutionContext, a: A) -> IO<Nothing, HttpResponseMessage> =
                 ::handleSuccessWithDefaultHandler,
-        handleDomainError: (request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, e: E) -> IO<Nothing, HttpResponseMessage> =
+        handleDomainError: (request: HttpRequestMessage<String?>, context: ExecutionContext, e: E) -> IO<Nothing, HttpResponseMessage> =
                 ::handleDomainErrorWithDefaultHandler,
-        handleSystemFailure: (request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, HttpResponseMessage> =
+        handleSystemFailure: (request: HttpRequestMessage<String?>, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, HttpResponseMessage> =
                 ::handleSystemFailureWithDefaultHandler
 ): HttpResponseMessage =
         domainLogic
