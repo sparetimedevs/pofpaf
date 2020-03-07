@@ -34,13 +34,12 @@ import io.kotlintest.properties.Gen
 import io.kotlintest.properties.forAll
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import java.util.Optional
 
 class HttpHandlerKtTest : StringSpec({
 
     "Should yield an HttpResponseMessage when default handlers are used." {
         forAll(Gen.io(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { domainLogic: IO<Any, Any>,
-                                                                                       request: HttpRequestMessage<Optional<String>>,
+                                                                                       request: HttpRequestMessage<String?>,
                                                                                        context: ExecutionContext ->
             val response =
                 handleHttp(
@@ -57,7 +56,7 @@ class HttpHandlerKtTest : StringSpec({
 
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSuccess supplied function." {
         forAll(Gen.ioJustAny(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { domainLogic: IO<Any, Any>,
-                                                                                              request: HttpRequestMessage<Optional<String>>,
+                                                                                              request: HttpRequestMessage<String?>,
                                                                                               context: ExecutionContext ->
             val response =
                 handleHttp(
@@ -77,7 +76,7 @@ class HttpHandlerKtTest : StringSpec({
 
     "Should yield an HttpResponseMessage when an exception is thrown in the handleDomainError supplied function." {
         forAll(Gen.ioRaiseAnyError(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { ioRaiseAnyError: IO<Any, Nothing>,
-                                                                                                    request: HttpRequestMessage<Optional<String>>,
+                                                                                                    request: HttpRequestMessage<String?>,
                                                                                                     context: ExecutionContext ->
             val response =
                 handleHttp(
@@ -97,7 +96,7 @@ class HttpHandlerKtTest : StringSpec({
 
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSystemFailure supplied function." {
         forAll(Gen.ioRaiseAnyException(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { ioRaiseAnyException: IO<Any, Nothing>,
-                                                                                                        request: HttpRequestMessage<Optional<String>>,
+                                                                                                        request: HttpRequestMessage<String?>,
                                                                                                         context: ExecutionContext ->
             val response =
                 handleHttp(
@@ -119,5 +118,5 @@ class HttpHandlerKtTest : StringSpec({
 private val exception = RuntimeException("An Exception is thrown while handling the result of the domain logic.")
 
 @Suppress("UNUSED_PARAMETER")
-private fun <T> throwException(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, t: T): IO<Nothing, HttpResponseMessage> =
+private fun <T> throwException(request: HttpRequestMessage<String?>, context: ExecutionContext, t: T): IO<Nothing, HttpResponseMessage> =
     IO { throw exception }

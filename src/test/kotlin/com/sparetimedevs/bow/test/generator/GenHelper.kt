@@ -20,7 +20,6 @@ import arrow.fx.IO
 import com.microsoft.azure.functions.HttpMethod
 import io.kotlintest.properties.Gen
 import java.net.URI
-import java.util.Optional
 import java.util.logging.Level
 
 internal fun Gen.Companion.io(): Gen<IO<Any, Any>> =
@@ -59,8 +58,7 @@ private fun Gen.Companion.any(): Gen<Any> =
                 throwable(),
                 mapOfStringAndStringGenerator(),
                 uri(),
-                httpMethod(),
-                optionalString()
+                httpMethod()
         )
 
 private fun Gen.Companion.throwable(): Gen<Throwable> =
@@ -174,19 +172,6 @@ internal fun Gen.Companion.httpMethod(): Gen<HttpMethod> =
                         HttpMethod.TRACE
                 )
         )
-
-internal fun Gen.Companion.optionalString(): Gen<Optional<String>> =
-        oneOf(
-                string().map { Optional.of(it) },
-                EmptyOptionalGenerator()
-        )
-
-private class EmptyOptionalGenerator : Gen<Optional<String>> {
-    override fun constants(): List<Optional<String>> = emptyList()
-    override fun random(): Sequence<Optional<String>> = generateSequence {
-        Optional.empty<String>()
-    }
-}
 
 internal fun Gen.Companion.logLevel(): Gen<Level> =
         from(

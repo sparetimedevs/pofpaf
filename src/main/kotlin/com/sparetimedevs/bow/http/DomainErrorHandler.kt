@@ -21,13 +21,12 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import java.util.Optional
 
 @Suppress("UNUSED_PARAMETER")
-fun <E> handleDomainErrorWithDefaultHandler(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, e: E): IO<Nothing, HttpResponseMessage> =
+fun <E> handleDomainErrorWithDefaultHandler(request: HttpRequestMessage<String?>, context: ExecutionContext, e: E): IO<Nothing, HttpResponseMessage> =
         createResponse(request, e)
 
-fun <E> createResponse(request: HttpRequestMessage<Optional<String>>, e: E): IO<Nothing, HttpResponseMessage> =
+fun <E> createResponse(request: HttpRequestMessage<String?>, e: E): IO<Nothing, HttpResponseMessage> =
         IO {
             request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ErrorResponse("$ERROR_MESSAGE_PREFIX $e"))

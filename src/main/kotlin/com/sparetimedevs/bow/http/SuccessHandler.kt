@@ -21,12 +21,11 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import java.util.Optional
 
 @Suppress("UNUSED_PARAMETER")
-fun <A> handleSuccessWithDefaultHandler(request: HttpRequestMessage<Optional<String>>, context: ExecutionContext, a: A): IO<Nothing, HttpResponseMessage> =
+fun <A> handleSuccessWithDefaultHandler(request: HttpRequestMessage<String?>, context: ExecutionContext, a: A): IO<Nothing, HttpResponseMessage> =
         IO { request.createResponse() }
 
-private fun HttpRequestMessage<Optional<String>>.createResponse(): HttpResponseMessage =
+private fun HttpRequestMessage<String?>.createResponse(): HttpResponseMessage =
         this.createResponseBuilder(HttpStatus.NO_CONTENT)
                 .build()
