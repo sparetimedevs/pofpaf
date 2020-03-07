@@ -1,12 +1,12 @@
 # Bow
 
-### By using Bow together with /\rrow you will be able to write safe(r) Azure Functions in Kotlin.
+### By using Bow together with Λrrow you will be able to write safe(r) Azure Functions in Kotlin.
 
 #### What are Azure Functions?
 Azure Functions allows you to develop serverless applications on Microsoft Azure. One or more Azure Functions are bundled into an application; a function app.
 For more information about Azure Functions, see [the docs](https://docs.microsoft.com/en-us/azure/azure-functions/functions-overview).
 
-#### What is /\rrow?
+#### What is Λrrow?
 Arrow is a functional companion to Kotlin's Standard Library.
 For more information about Arrow, see [the docs](https://arrow-kt.io).
 
