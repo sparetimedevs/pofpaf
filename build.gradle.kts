@@ -1,5 +1,10 @@
+import com.jfrog.bintray.gradle.BintrayExtension
+import java.util.Date
+
 plugins {
     kotlin("jvm") version "1.3.70"
+    `maven-publish`
+    id("com.jfrog.bintray") version "1.8.4"
 }
 
 group = "com.sparetimedevs"
@@ -44,4 +49,48 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+}
+
+val sourcesJar by tasks.creating(Jar::class) {
+    dependsOn("classes")
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
+}
+
+artifacts {
+    archives(sourcesJar)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("default") {
+            from(components["java"])
+            artifact(sourcesJar)
+        }
+    }
+    repositories {
+        maven {
+            url = uri("$buildDir/repository")
+        }
+    }
+}
+
+bintray {
+    val bintrayUsername: String? by project
+    val bintrayApiKey: String? by project
+    user = bintrayUsername
+    key = bintrayApiKey
+    setPublications("default")
+    pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
+        repo = "Bow"
+        name = "Bow"
+        userOrg = "sparetimedevs"
+        setLabels("kotlin")
+        setLicenses("Apache-2.0")
+        vcsUrl = "https://github.com/sparetimedevs/bow.git"
+        version(delegateClosureOf<BintrayExtension.VersionConfig> {
+            name = project.version as? String
+            released = Date().toString()
+        })
+    })
 }
