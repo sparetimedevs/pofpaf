@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.bow.http
+package com.sparetimedevs.bow.timer
 
 import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
-import com.microsoft.azure.functions.HttpRequestMessage
-import com.microsoft.azure.functions.HttpResponseMessage
-import com.microsoft.azure.functions.HttpStatus
 
 @Suppress("UNUSED_PARAMETER")
-fun <A> handleSuccessWithDefaultHandler(
-    request: HttpRequestMessage<String?>,
-    context: ExecutionContext,
-    a: A
-): IO<Nothing, HttpResponseMessage> =
-    IO { request.createResponse(a) }
-
-private fun <A> HttpRequestMessage<String?>.createResponse(a: A): HttpResponseMessage =
-    this.createResponseBuilder(HttpStatus.OK)
-        .body(a)
-        .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-        .build()
+fun <E> handleDomainErrorWithDefaultHandler(timerInfo: String, context: ExecutionContext, e: E): IO<Nothing, Unit> =
+    IO { }

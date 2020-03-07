@@ -25,14 +25,18 @@ import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.bow.log.log
 import java.util.logging.Level
 
-fun handleSystemFailureWithDefaultHandler(request: HttpRequestMessage<String?>, context: ExecutionContext, throwable: Throwable): IO<Nothing, HttpResponseMessage> =
-        log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
-                .followedBy(createResponse(request, throwable))
+fun handleSystemFailureWithDefaultHandler(
+    request: HttpRequestMessage<String?>,
+    context: ExecutionContext,
+    throwable: Throwable
+): IO<Nothing, HttpResponseMessage> =
+    log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
+        .followedBy(createResponse(request, throwable))
 
 fun createResponse(request: HttpRequestMessage<String?>, throwable: Throwable): IO<Nothing, HttpResponseMessage> =
-        IO {
-            request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ErrorResponse("$THROWABLE_MESSAGE_PREFIX $throwable"))
-                    .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                    .build()
-        }
+    IO {
+        request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ErrorResponse("$THROWABLE_MESSAGE_PREFIX $throwable"))
+            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+            .build()
+    }
