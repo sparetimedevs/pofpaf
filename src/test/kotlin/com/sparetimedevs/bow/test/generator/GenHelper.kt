@@ -16,174 +16,172 @@
 
 package com.sparetimedevs.bow.test.generator
 
+import arrow.core.test.generators.fatalThrowable
+import arrow.core.test.generators.throwable
 import arrow.fx.IO
 import com.microsoft.azure.functions.HttpMethod
 import io.kotlintest.properties.Gen
 import java.net.URI
 import java.util.logging.Level
+import arrow.core.test.generators.unit
 
-internal fun Gen.Companion.io(): Gen<IO<Any, Any>> =
-        oneOf(
-                ioJustAny(),
-                ioRaiseAnyError(),
-                ioRaiseAnyException()
+fun Gen.Companion.ioOfAnyAndAny(): Gen<IO<Any, Any>> =
+    oneOf(
+        ioJustAny(),
+        ioRaiseAnyError(),
+        ioRaiseAnyException()
+    )
+
+fun Gen.Companion.ioOfAnyAndUnit(): Gen<IO<Any, Unit>> =
+    oneOf(
+        ioJustUnit(),
+        ioRaiseAnyError(),
+        ioRaiseAnyException()
+    )
+
+fun Gen.Companion.ioJustUnit(): Gen<IO<Nothing, Unit>> =
+    Gen.unit().map(IO.Companion::just)
+
+fun Gen.Companion.ioJustAny(): Gen<IO<Nothing, Any>> =
+    any().map(IO.Companion::just)
+
+fun Gen.Companion.ioRaiseAnyError(): Gen<IO<Any, Nothing>> =
+    any().map(IO.Companion::raiseError)
+
+fun Gen.Companion.ioRaiseAnyException(): Gen<IO<Nothing, Nothing>> =
+    oneOf(
+        throwable().map(IO.Companion::raiseException),
+        fatalThrowable().map(IO.Companion::raiseException)
+    )
+
+fun Gen.Companion.any(): Gen<Any> =
+    oneOf(
+        string(),
+        int(),
+        short(),
+        long(),
+        float(),
+        double(),
+        bool(),
+        byte(),
+        uuid(),
+        file(),
+        localDate(),
+        localTime(),
+        localDateTime(),
+        duration(),
+        period(),
+        throwable(),
+        fatalThrowable(),
+        mapOfStringAndStringGenerator(),
+        uri(),
+        httpMethod(),
+        unit()
+    )
+
+fun Gen.Companion.mapOfStringAndStringGenerator(): Gen<Map<String, String>> =
+    from(
+        listOf(
+            emptyMap(),
+            mapOf(
+                string().random().first() to string().random().first()
+            ),
+            mapOf(
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first()
+            ),
+            mapOf(
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first()
+            ),
+            mapOf(
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first()
+            ),
+            mapOf(
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first()
+            ),
+            mapOf(
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first(),
+                string().random().first() to string().random().first()
+            )
         )
+    )
 
-internal fun Gen.Companion.ioJustAny(): Gen<IO<Nothing, Any>> =
-        any().map(IO.Companion::just)
-
-internal fun Gen.Companion.ioRaiseAnyError(): Gen<IO<Any, Nothing>> =
-        any().map(IO.Companion::raiseError)
-
-internal fun Gen.Companion.ioRaiseAnyException(): Gen<IO<Nothing, Nothing>> =
-        throwable().map(IO.Companion::raiseException)
-
-private fun Gen.Companion.any(): Gen<Any> =
-        oneOf(
-                string(),
-                int(),
-                short(),
-                long(),
-                float(),
-                double(),
-                bool(),
-                byte(),
-                uuid(),
-                file(),
-                localDate(),
-                localTime(),
-                localDateTime(),
-                duration(),
-                period(),
-                throwable(),
-                mapOfStringAndStringGenerator(),
-                uri(),
-                httpMethod()
+fun Gen.Companion.uri(): Gen<URI> =
+    from(
+        listOf(
+            URI.create("https://sparetimedevs.com"),
+            URI.create("https://www.sparetimedevs.com"),
+            URI.create("https://something.sparetimedevs.com"),
+            URI.create("https://something.sparetimedevs.com/another/thing"),
+            URI.create("https://something.sparetimedevs.com/another/thing?query=param")
         )
+    )
 
-private fun Gen.Companion.throwable(): Gen<Throwable> =
-        from(
-                listOf(
-                        Error(),
-                        Exception(),
-                        RuntimeException(),
-                        IllegalArgumentException(),
-                        IllegalStateException(),
-                        IndexOutOfBoundsException(),
-                        UnsupportedOperationException(),
-                        ArithmeticException(),
-                        NumberFormatException(),
-                        NullPointerException(),
-                        ClassCastException(),
-                        AssertionError(),
-                        NoSuchElementException(),
-                        ConcurrentModificationException()
-                )
+fun Gen.Companion.httpMethod(): Gen<HttpMethod> =
+    from(
+        listOf(
+            HttpMethod.GET,
+            HttpMethod.HEAD,
+            HttpMethod.POST,
+            HttpMethod.PUT,
+            HttpMethod.DELETE,
+            HttpMethod.CONNECT,
+            HttpMethod.OPTIONS,
+            HttpMethod.TRACE
         )
+    )
 
-internal fun Gen.Companion.mapOfStringAndStringGenerator(): Gen<Map<String, String>> =
-        from(
-                listOf(
-                        emptyMap(),
-                        mapOf(
-                                string().random().first() to string().random().first()
-                        ),
-                        mapOf(
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first()
-                        ),
-                        mapOf(
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first()
-                        ),
-                        mapOf(
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first()
-                        ),
-                        mapOf(
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first()
-                        ),
-                        mapOf(
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first(),
-                                string().random().first() to string().random().first()
-                        )
-                )
+fun Gen.Companion.logLevel(): Gen<Level> =
+    from(
+        listOf(
+            Level.ALL,
+            Level.FINEST,
+            Level.FINER,
+            Level.FINE,
+            Level.CONFIG,
+            Level.INFO,
+            Level.WARNING,
+            Level.SEVERE,
+            Level.OFF
         )
-
-internal fun Gen.Companion.uri(): Gen<URI> =
-        from(
-                listOf(
-                        URI.create("https://sparetimedevs.com"),
-                        URI.create("https://www.sparetimedevs.com"),
-                        URI.create("https://something.sparetimedevs.com"),
-                        URI.create("https://something.sparetimedevs.com/another/thing"),
-                        URI.create("https://something.sparetimedevs.com/another/thing?query=param")
-                )
-        )
-
-internal fun Gen.Companion.httpMethod(): Gen<HttpMethod> =
-        from(
-                listOf(
-                        HttpMethod.GET,
-                        HttpMethod.HEAD,
-                        HttpMethod.POST,
-                        HttpMethod.PUT,
-                        HttpMethod.DELETE,
-                        HttpMethod.CONNECT,
-                        HttpMethod.OPTIONS,
-                        HttpMethod.TRACE
-                )
-        )
-
-internal fun Gen.Companion.logLevel(): Gen<Level> =
-        from(
-                listOf(
-                        Level.ALL,
-                        Level.FINEST,
-                        Level.FINER,
-                        Level.FINE,
-                        Level.CONFIG,
-                        Level.INFO,
-                        Level.WARNING,
-                        Level.SEVERE,
-                        Level.OFF
-                )
-        )
+    )

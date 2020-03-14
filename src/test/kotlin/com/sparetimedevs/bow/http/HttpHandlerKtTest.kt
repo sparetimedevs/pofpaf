@@ -24,8 +24,8 @@ import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.bow.test.ALL_ASSERTIONS_ARE_POSITIVE
 import com.sparetimedevs.bow.test.generator.ExecutionContextGenerator
 import com.sparetimedevs.bow.test.generator.HttpRequestMessageGenerator
-import com.sparetimedevs.bow.test.generator.io
 import com.sparetimedevs.bow.test.generator.ioJustAny
+import com.sparetimedevs.bow.test.generator.ioOfAnyAndAny
 import com.sparetimedevs.bow.test.generator.ioRaiseAnyError
 import com.sparetimedevs.bow.test.generator.ioRaiseAnyException
 import io.kotlintest.matchers.shouldBeInRange
@@ -38,9 +38,14 @@ import io.kotlintest.specs.StringSpec
 class HttpHandlerKtTest : StringSpec({
 
     "Should yield an HttpResponseMessage when default handlers are used." {
-        forAll(Gen.io(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { domainLogic: IO<Any, Any>,
-                                                                                       request: HttpRequestMessage<String?>,
-                                                                                       context: ExecutionContext ->
+        forAll(
+            HttpRequestMessageGenerator(),
+            ExecutionContextGenerator(),
+            Gen.ioOfAnyAndAny()
+        ) { request: HttpRequestMessage<String?>,
+            context: ExecutionContext,
+            domainLogic: IO<Any, Any> ->
+
             val response =
                 handleHttp(
                     request = request,
@@ -55,9 +60,14 @@ class HttpHandlerKtTest : StringSpec({
     }
 
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSuccess supplied function." {
-        forAll(Gen.ioJustAny(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { domainLogic: IO<Any, Any>,
-                                                                                              request: HttpRequestMessage<String?>,
-                                                                                              context: ExecutionContext ->
+        forAll(
+            HttpRequestMessageGenerator(),
+            ExecutionContextGenerator(),
+            Gen.ioJustAny()
+        ) { request: HttpRequestMessage<String?>,
+            context: ExecutionContext,
+            domainLogic: IO<Any, Any> ->
+
             val response =
                 handleHttp(
                     request = request,
@@ -75,9 +85,14 @@ class HttpHandlerKtTest : StringSpec({
     }
 
     "Should yield an HttpResponseMessage when an exception is thrown in the handleDomainError supplied function." {
-        forAll(Gen.ioRaiseAnyError(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { ioRaiseAnyError: IO<Any, Nothing>,
-                                                                                                    request: HttpRequestMessage<String?>,
-                                                                                                    context: ExecutionContext ->
+        forAll(
+            HttpRequestMessageGenerator(),
+            ExecutionContextGenerator(),
+            Gen.ioRaiseAnyError()
+        ) { request: HttpRequestMessage<String?>,
+            context: ExecutionContext,
+            ioRaiseAnyError: IO<Any, Nothing> ->
+
             val response =
                 handleHttp(
                     request = request,
@@ -95,9 +110,14 @@ class HttpHandlerKtTest : StringSpec({
     }
 
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSystemFailure supplied function." {
-        forAll(Gen.ioRaiseAnyException(), HttpRequestMessageGenerator(), ExecutionContextGenerator()) { ioRaiseAnyException: IO<Any, Nothing>,
-                                                                                                        request: HttpRequestMessage<String?>,
-                                                                                                        context: ExecutionContext ->
+        forAll(
+            HttpRequestMessageGenerator(),
+            ExecutionContextGenerator(),
+            Gen.ioRaiseAnyException()
+        ) { request: HttpRequestMessage<String?>,
+            context: ExecutionContext,
+            ioRaiseAnyException: IO<Any, Nothing> ->
+
             val response =
                 handleHttp(
                     request = request,

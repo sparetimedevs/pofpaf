@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.sparetimedevs"
-version = "0.0.1-EXPERIMENTAL-cew82ks"
+version = "0.0.1-EXPERIMENTAL-vw3op1a"
 
 repositories {
     mavenCentral()
@@ -26,6 +26,7 @@ dependencies {
     val azureFunctionsArtifact = "azure-functions-java-library"
     val arrowFxArtifact = "arrow-fx"
     val kotlinTestRunnerJUnit5Artifact = "kotlintest-runner-junit5"
+    val arrowTestArtifact = "arrow-core-test"
     val mockkArtifact = "mockk"
 
     val azureFunctionsVersion: String by project
@@ -39,6 +40,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     testImplementation(kotlinTestGroup, kotlinTestRunnerJUnit5Artifact, kotlinTestVersion)
+    testImplementation(arrowGroup, arrowTestArtifact, arrowVersion)
     testImplementation(mockkGroup, mockkArtifact, mockkVersion)
 }
 

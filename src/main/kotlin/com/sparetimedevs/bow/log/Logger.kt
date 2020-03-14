@@ -22,6 +22,6 @@ import com.microsoft.azure.functions.ExecutionContext
 import java.util.logging.Level
 
 fun log(context: ExecutionContext, level: Level, message: String): IO<Nothing, Unit> =
-        IO {
-            context.logger.log(level, message)
-        }.handleError { /* Do nothing in case of logging resulting in an exception being thrown. */ }
+    IO {
+        context.logger.log(level, message)
+    }.handleError { /* Do nothing in case of logging resulting in an exception being thrown. */ }

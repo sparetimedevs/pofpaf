@@ -14,38 +14,36 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.bow.http
+package com.sparetimedevs.bow.timer
 
 import arrow.fx.IO
 import arrow.fx.handleErrorWith
 import arrow.fx.redeemWith
 import arrow.fx.unsafeRunSync
 import com.microsoft.azure.functions.ExecutionContext
-import com.microsoft.azure.functions.HttpRequestMessage
-import com.microsoft.azure.functions.HttpResponseMessage
 
-fun <E, A> handleHttp(
-    request: HttpRequestMessage<String?>,
+fun <E> handleTimer(
+    timerInfo: String,
     context: ExecutionContext,
-    domainLogic: IO<E, A>,
-    handleSuccess: (request: HttpRequestMessage<String?>, context: ExecutionContext, a: A) -> IO<Nothing, HttpResponseMessage> =
+    domainLogic: IO<E, Unit>,
+    handleSuccess: (timerInfo: String, context: ExecutionContext) -> IO<Nothing, Unit> =
         ::handleSuccessWithDefaultHandler,
-    handleDomainError: (request: HttpRequestMessage<String?>, context: ExecutionContext, e: E) -> IO<Nothing, HttpResponseMessage> =
+    handleDomainError: (timerInfo: String, context: ExecutionContext, e: E) -> IO<Nothing, Unit> =
         ::handleDomainErrorWithDefaultHandler,
-    handleSystemFailure: (request: HttpRequestMessage<String?>, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, HttpResponseMessage> =
+    handleSystemFailure: (timerInfo: String, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, Unit> =
         ::handleSystemFailureWithDefaultHandler
-): HttpResponseMessage =
+): Unit =
     domainLogic
         .redeemWith(
             { throwable: Throwable ->
-                handleSystemFailure(request, context, throwable)
+                handleSystemFailure(timerInfo, context, throwable)
             },
             { e: E ->
-                handleDomainError(request, context, e)
+                handleDomainError(timerInfo, context, e)
             },
-            { a: A ->
-                handleSuccess(request, context, a)
+            { _ ->
+                handleSuccess(timerInfo, context)
             }
         )
-        .handleErrorWith { handleSystemFailureWithDefaultHandler(request, context, it) }
+        .handleErrorWith { handleSystemFailureWithDefaultHandler(timerInfo, context, it) }
         .unsafeRunSync()
