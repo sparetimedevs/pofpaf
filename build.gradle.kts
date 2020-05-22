@@ -84,12 +84,12 @@ bintray {
     key = bintrayApiKey
     setPublications("default")
     pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
-        repo = "Bow"
-        name = "Bow"
+        repo = "Pofpaf"
+        name = "Pofpaf"
         userOrg = "sparetimedevs"
         setLabels("kotlin")
         setLicenses("Apache-2.0")
-        vcsUrl = "https://github.com/sparetimedevs/bow.git"
+        vcsUrl = "https://github.com/sparetimedevs/pofpaf.git"
         version(delegateClosureOf<BintrayExtension.VersionConfig> {
             name = project.version as? String
             released = Date().toString()
