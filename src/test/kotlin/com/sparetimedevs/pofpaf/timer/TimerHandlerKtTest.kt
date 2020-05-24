@@ -18,46 +18,45 @@ package com.sparetimedevs.pofpaf.timer
 
 import arrow.fx.IO
 import com.microsoft.azure.functions.ExecutionContext
-import com.sparetimedevs.pofpaf.test.ALL_ASSERTIONS_ARE_POSITIVE
-import com.sparetimedevs.pofpaf.test.generator.ExecutionContextGenerator
+import com.sparetimedevs.pofpaf.test.generator.executionContextArb
 import com.sparetimedevs.pofpaf.test.generator.ioOfAnyAndUnit
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.properties.Gen
-import io.kotlintest.properties.forAll
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.string
+import io.kotest.property.checkAll
 
 class TimerHandlerKtTest : StringSpec({
-
+    
     "Should yield a Unit when default handlers are used." {
-        forAll(
-            Gen.string(maxSize = 500),
-            ExecutionContextGenerator(),
-            Gen.ioOfAnyAndUnit()
+        checkAll(
+            Arb.string(maxSize = 500),
+            Arb.executionContextArb(),
+            Arb.ioOfAnyAndUnit()
         ) { timerInfo: String,
             context: ExecutionContext,
             domainLogic: IO<Any, Unit> ->
-
+            
             val response =
                 handleTimer(
                     timerInfo = timerInfo,
                     context = context,
                     domainLogic = domainLogic
                 )
-
+            
             response.shouldBeInstanceOf<Unit>()
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
-
+    
     "Should yield a Unit when an exception is thrown in the handleSuccess supplied function." {
-        forAll(
-            Gen.string(maxSize = 500),
-            ExecutionContextGenerator(),
-            Gen.ioOfAnyAndUnit()
+        checkAll(
+            Arb.string(maxSize = 500),
+            Arb.executionContextArb(),
+            Arb.ioOfAnyAndUnit()
         ) { timerInfo: String,
             context: ExecutionContext,
             domainLogic: IO<Any, Unit> ->
-
+            
             val response =
                 handleTimer(
                     timerInfo = timerInfo,
@@ -65,21 +64,20 @@ class TimerHandlerKtTest : StringSpec({
                     domainLogic = domainLogic,
                     handleSuccess = ::throwException
                 )
-
+            
             response.shouldBeInstanceOf<Unit>()
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
-
+    
     "Should yield a Unit when an exception is thrown in the handleDomainError supplied function." {
-        forAll(
-            Gen.string(maxSize = 500),
-            ExecutionContextGenerator(),
-            Gen.ioOfAnyAndUnit()
+        checkAll(
+            Arb.string(maxSize = 500),
+            Arb.executionContextArb(),
+            Arb.ioOfAnyAndUnit()
         ) { timerInfo: String,
             context: ExecutionContext,
             domainLogic: IO<Any, Unit> ->
-
+            
             val response =
                 handleTimer(
                     timerInfo = timerInfo,
@@ -87,21 +85,20 @@ class TimerHandlerKtTest : StringSpec({
                     domainLogic = domainLogic,
                     handleDomainError = ::throwException
                 )
-
+            
             response.shouldBeInstanceOf<Unit>()
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
-
+    
     "Should yield a Unit when an exception is thrown in the handleSystemFailure supplied function." {
-        forAll(
-            Gen.string(maxSize = 500),
-            ExecutionContextGenerator(),
-            Gen.ioOfAnyAndUnit()
+        checkAll(
+            Arb.string(maxSize = 500),
+            Arb.executionContextArb(),
+            Arb.ioOfAnyAndUnit()
         ) { timerInfo: String,
             context: ExecutionContext,
             domainLogic: IO<Any, Unit> ->
-
+            
             val response =
                 handleTimer(
                     timerInfo = timerInfo,
@@ -109,9 +106,8 @@ class TimerHandlerKtTest : StringSpec({
                     domainLogic = domainLogic,
                     handleSystemFailure = ::throwException
                 )
-
+            
             response.shouldBeInstanceOf<Unit>()
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
 })

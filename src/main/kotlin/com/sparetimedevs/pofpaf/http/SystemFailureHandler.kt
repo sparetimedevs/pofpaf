@@ -26,14 +26,14 @@ import com.sparetimedevs.pofpaf.log.log
 import java.util.logging.Level
 
 fun handleSystemFailureWithDefaultHandler(
-    request: HttpRequestMessage<String?>,
+    request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     throwable: Throwable
 ): IO<Nothing, HttpResponseMessage> =
     log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
         .followedBy(createResponse(request, throwable))
 
-fun createResponse(request: HttpRequestMessage<String?>, throwable: Throwable): IO<Nothing, HttpResponseMessage> =
+fun createResponse(request: HttpRequestMessage<out Any?>, throwable: Throwable): IO<Nothing, HttpResponseMessage> =
     IO {
         request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ErrorResponse("$THROWABLE_MESSAGE_PREFIX $throwable"))

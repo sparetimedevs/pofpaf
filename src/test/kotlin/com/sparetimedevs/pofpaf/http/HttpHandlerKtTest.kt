@@ -21,53 +21,51 @@ import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.test.ALL_ASSERTIONS_ARE_POSITIVE
-import com.sparetimedevs.pofpaf.test.generator.ExecutionContextGenerator
-import com.sparetimedevs.pofpaf.test.generator.HttpRequestMessageGenerator
+import com.sparetimedevs.pofpaf.test.generator.executionContextArb
+import com.sparetimedevs.pofpaf.test.generator.httpRequestMessageGenerator
 import com.sparetimedevs.pofpaf.test.generator.ioJustAny
 import com.sparetimedevs.pofpaf.test.generator.ioOfAnyAndAny
 import com.sparetimedevs.pofpaf.test.generator.ioRaiseAnyError
 import com.sparetimedevs.pofpaf.test.generator.ioRaiseAnyException
-import io.kotlintest.matchers.shouldBeInRange
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.properties.Gen
-import io.kotlintest.properties.forAll
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.ints.shouldBeInRange
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.property.Arb
+import io.kotest.property.checkAll
 
 class HttpHandlerKtTest : StringSpec({
-
+    
     "Should yield an HttpResponseMessage when default handlers are used." {
-        forAll(
-            HttpRequestMessageGenerator(),
-            ExecutionContextGenerator(),
-            Gen.ioOfAnyAndAny()
+        checkAll(
+            Arb.httpRequestMessageGenerator(),
+            Arb.executionContextArb(),
+            Arb.ioOfAnyAndAny()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
             domainLogic: IO<Any, Any> ->
-
+            
             val response =
                 handleHttp(
                     request = request,
                     context = context,
                     domainLogic = domainLogic
                 )
-
+            
             response.shouldBeInstanceOf<HttpResponseMessage>()
             response.statusCode shouldBeInRange IntRange(100, 599)
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
-
+    
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSuccess supplied function." {
-        forAll(
-            HttpRequestMessageGenerator(),
-            ExecutionContextGenerator(),
-            Gen.ioJustAny()
+        checkAll(
+            Arb.httpRequestMessageGenerator(),
+            Arb.executionContextArb(),
+            Arb.ioJustAny()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
             domainLogic: IO<Any, Any> ->
-
+            
             val response =
                 handleHttp(
                     request = request,
@@ -75,24 +73,23 @@ class HttpHandlerKtTest : StringSpec({
                     domainLogic = domainLogic,
                     handleSuccess = ::throwException
                 )
-
+            
             response.shouldBeInstanceOf<HttpResponseMessage>()
             response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR.value()
             response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
             response.body shouldBe ErrorResponse("$THROWABLE_MESSAGE_PREFIX $exception")
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
-
+    
     "Should yield an HttpResponseMessage when an exception is thrown in the handleDomainError supplied function." {
-        forAll(
-            HttpRequestMessageGenerator(),
-            ExecutionContextGenerator(),
-            Gen.ioRaiseAnyError()
+        checkAll(
+            Arb.httpRequestMessageGenerator(),
+            Arb.executionContextArb(),
+            Arb.ioRaiseAnyError()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
             ioRaiseAnyError: IO<Any, Nothing> ->
-
+            
             val response =
                 handleHttp(
                     request = request,
@@ -100,24 +97,23 @@ class HttpHandlerKtTest : StringSpec({
                     domainLogic = ioRaiseAnyError,
                     handleDomainError = ::throwException
                 )
-
+            
             response.shouldBeInstanceOf<HttpResponseMessage>()
             response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR.value()
             response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
             response.body shouldBe ErrorResponse("$THROWABLE_MESSAGE_PREFIX $exception")
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
-
+    
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSystemFailure supplied function." {
-        forAll(
-            HttpRequestMessageGenerator(),
-            ExecutionContextGenerator(),
-            Gen.ioRaiseAnyException()
+        checkAll(
+            Arb.httpRequestMessageGenerator(),
+            Arb.executionContextArb(),
+            Arb.ioRaiseAnyException()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
             ioRaiseAnyException: IO<Any, Nothing> ->
-
+            
             val response =
                 handleHttp(
                     request = request,
@@ -125,12 +121,11 @@ class HttpHandlerKtTest : StringSpec({
                     domainLogic = ioRaiseAnyException,
                     handleSystemFailure = ::throwException
                 )
-
+            
             response.shouldBeInstanceOf<HttpResponseMessage>()
             response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR.value()
             response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
             response.body shouldBe ErrorResponse("$THROWABLE_MESSAGE_PREFIX $exception")
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
 })
@@ -138,5 +133,5 @@ class HttpHandlerKtTest : StringSpec({
 private val exception = RuntimeException("An Exception is thrown while handling the result of the domain logic.")
 
 @Suppress("UNUSED_PARAMETER")
-private fun <T> throwException(request: HttpRequestMessage<String?>, context: ExecutionContext, t: T): IO<Nothing, HttpResponseMessage> =
+private fun <T> throwException(request: HttpRequestMessage<out Any?>, context: ExecutionContext, t: T): IO<Nothing, HttpResponseMessage> =
     IO { throw exception }

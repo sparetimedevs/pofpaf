@@ -18,13 +18,14 @@ package com.sparetimedevs.pofpaf.log
 
 import arrow.fx.unsafeRunSync
 import com.microsoft.azure.functions.ExecutionContext
-import com.sparetimedevs.pofpaf.test.ALL_ASSERTIONS_ARE_POSITIVE
-import com.sparetimedevs.pofpaf.test.generator.ExecutionContextGenerator
+import com.sparetimedevs.pofpaf.test.generator.executionContextArb
 import com.sparetimedevs.pofpaf.test.generator.logLevel
-import io.kotlintest.matchers.types.shouldBeInstanceOf
-import io.kotlintest.properties.Gen
-import io.kotlintest.properties.forAll
-import io.kotlintest.specs.StringSpec
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
+import io.kotest.property.arbitrary.string
+import io.kotest.property.checkAll
 import io.mockk.every
 import io.mockk.mockk
 import java.util.logging.Level
@@ -35,24 +36,22 @@ class LoggerKtTest : StringSpec({
     every { contextMock.logger.log(any(), any<String>()) } throws RuntimeException("Break stuff")
     
     "Should not yield anything other than Unit when run unsafe." {
-        forAll(ExecutionContextGenerator(), Gen.logLevel(), Gen.string(maxSize = 10_000)) { context: ExecutionContext,
-                                                                                            level: Level,
-                                                                                            message: String ->
+        checkAll(Arb.executionContextArb(), Exhaustive.logLevel(), Arb.string(maxSize = 10_000)) { context: ExecutionContext,
+                                                                                                   level: Level,
+                                                                                                   message: String ->
             
             val result = log(context, level, message).unsafeRunSync()
             
             result.shouldBeInstanceOf<Unit>()
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
     
     "Should not throw exception when run unsafe." {
-        forAll(Gen.logLevel(), Gen.string(maxSize = 100_000)) { level: Level, message: String ->
+        checkAll(Exhaustive.logLevel(), Arb.string(maxSize = 100_000)) { level: Level, message: String ->
             
             val result = log(contextMock, level, message).unsafeRunSync()
             
             result.shouldBeInstanceOf<Unit>()
-            ALL_ASSERTIONS_ARE_POSITIVE
         }
     }
 })

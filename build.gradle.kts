@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.sparetimedevs"
-version = "0.0.1-EXPERIMENTAL-vw3op1a"
+version = "0.0.1-EXPERIMENTAL-we9mk5l"
 
 repositories {
     mavenCentral()
@@ -20,18 +20,19 @@ repositories {
 dependencies {
     val azureFunctionsGroup = "com.microsoft.azure.functions"
     val arrowGroup = "io.arrow-kt"
-    val kotlinTestGroup = "io.kotlintest"
+    val kotestGroup = "io.kotest"
     val mockkGroup = "io.mockk"
 
     val azureFunctionsArtifact = "azure-functions-java-library"
     val arrowFxArtifact = "arrow-fx"
-    val kotlinTestRunnerJUnit5Artifact = "kotlintest-runner-junit5"
-    val arrowTestArtifact = "arrow-core-test"
+    val kotestRunnerJUnit5Artifact = "kotest-runner-junit5-jvm"
+    val kotestAssertionsCoreArtifact = "kotest-assertions-core-jvm"
+    val kotestPropertyArtifact = "kotest-property-jvm"
     val mockkArtifact = "mockk"
 
     val azureFunctionsVersion: String by project
     val arrowVersion: String by project
-    val kotlinTestVersion: String by project
+    val kotestVersion: String by project
     val mockkVersion: String by project
 
     api(azureFunctionsGroup, azureFunctionsArtifact, azureFunctionsVersion)
@@ -39,8 +40,9 @@ dependencies {
 
     implementation(kotlin("stdlib-jdk8"))
 
-    testImplementation(kotlinTestGroup, kotlinTestRunnerJUnit5Artifact, kotlinTestVersion)
-    testImplementation(arrowGroup, arrowTestArtifact, arrowVersion)
+    testImplementation(kotestGroup, kotestRunnerJUnit5Artifact, kotestVersion)
+    testImplementation(kotestGroup, kotestAssertionsCoreArtifact, kotestVersion)
+    testImplementation(kotestGroup, kotestPropertyArtifact, kotestVersion)
     testImplementation(mockkGroup, mockkArtifact, mockkVersion)
 }
 
@@ -51,6 +53,10 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 val sourcesJar by tasks.creating(Jar::class) {

@@ -18,28 +18,22 @@ package com.sparetimedevs.pofpaf.test.generator
 
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.TraceContext
-import io.kotlintest.properties.Gen
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.bind
+import io.kotest.property.arbitrary.create
+import io.kotest.property.arbitrary.string
 import java.util.logging.Logger
 
-internal class ExecutionContextGenerator : Gen<ExecutionContext> {
-    override fun constants(): List<ExecutionContext> = emptyList()
-    override fun random(): Sequence<ExecutionContext> = generateSequence {
-        ExecutionContextTestImpl(
-                Gen.string().random().first(),
-                TraceContextGenerator().random().first(),
-                Logger.getGlobal(),
-                Gen.string().random().first()
-        )
+private fun Arb.Companion.traceContextArb(): Arb<TraceContext> =
+    bind(
+        string(), string(), mapOfStringAndStringGenerator()
+    ) { traceParent, traceState, attributes ->
+        ExecutionTraceContextTestImpl(traceParent, traceState, attributes)
     }
-}
 
-private class TraceContextGenerator : Gen<TraceContext> {
-    override fun constants(): List<TraceContext> = emptyList()
-    override fun random(): Sequence<TraceContext> = generateSequence {
-        ExecutionTraceContextTestImpl(
-                Gen.string().random().first(),
-                Gen.string().random().first(),
-                Gen.mapOfStringAndStringGenerator().random().first()
-        )
+fun Arb.Companion.executionContextArb(): Arb<ExecutionContext> =
+    bind(
+        string(), traceContextArb(), create { Logger.getGlobal() }, string()
+    ) { invocationId, traceContext, logger, functionName ->
+        ExecutionContextTestImpl(invocationId, traceContext, logger, functionName)
     }
-}

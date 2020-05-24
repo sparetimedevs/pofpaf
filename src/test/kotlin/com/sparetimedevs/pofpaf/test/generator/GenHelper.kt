@@ -16,138 +16,184 @@
 
 package com.sparetimedevs.pofpaf.test.generator
 
-import arrow.core.test.generators.fatalThrowable
-import arrow.core.test.generators.throwable
 import arrow.fx.IO
 import com.microsoft.azure.functions.HttpMethod
-import io.kotlintest.properties.Gen
+import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
+import io.kotest.property.arbitrary.bool
+import io.kotest.property.arbitrary.byte
+import io.kotest.property.arbitrary.choice
+import io.kotest.property.arbitrary.create
+import io.kotest.property.arbitrary.double
+import io.kotest.property.arbitrary.element
+import io.kotest.property.arbitrary.file
+import io.kotest.property.arbitrary.float
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.localDate
+import io.kotest.property.arbitrary.localDateTime
+import io.kotest.property.arbitrary.localTime
+import io.kotest.property.arbitrary.long
+import io.kotest.property.arbitrary.map
+import io.kotest.property.arbitrary.next
+import io.kotest.property.arbitrary.period
+import io.kotest.property.arbitrary.short
+import io.kotest.property.arbitrary.string
+import io.kotest.property.arbitrary.uuid
+import io.kotest.property.exhaustive.exhaustive
 import java.net.URI
 import java.util.logging.Level
-import arrow.core.test.generators.unit
 
-fun Gen.Companion.ioOfAnyAndAny(): Gen<IO<Any, Any>> =
-    oneOf(
-        ioJustAny(),
-        ioRaiseAnyError(),
-        ioRaiseAnyException()
+fun Arb.Companion.ioOfAnyAndAny(): Arb<IO<Any, Any>> =
+    choice(
+        ioJustAny() as Arb<IO<Any, Any>>,
+        ioRaiseAnyError() as Arb<IO<Any, Any>>,
+        ioRaiseAnyException() as Arb<IO<Any, Any>>
     )
 
-fun Gen.Companion.ioOfAnyAndUnit(): Gen<IO<Any, Unit>> =
-    oneOf(
-        ioJustUnit(),
-        ioRaiseAnyError(),
-        ioRaiseAnyException()
+fun Arb.Companion.ioOfAnyAndUnit(): Arb<IO<Any, Unit>> =
+    choice(
+        ioJustUnit() as Arb<IO<Any, Unit>>,
+        ioRaiseAnyError() as Arb<IO<Any, Unit>>,
+        ioRaiseAnyException() as Arb<IO<Any, Unit>>
     )
 
-fun Gen.Companion.ioJustUnit(): Gen<IO<Nothing, Unit>> =
-    Gen.unit().map(IO.Companion::just)
+fun Arb.Companion.ioJustUnit(): Arb<IO<Nothing, Unit>> =
+    unit().map(IO.Companion::just)
 
-fun Gen.Companion.ioJustAny(): Gen<IO<Nothing, Any>> =
+fun Arb.Companion.ioJustAny(): Arb<IO<Nothing, Any>> =
     any().map(IO.Companion::just)
 
-fun Gen.Companion.ioRaiseAnyError(): Gen<IO<Any, Nothing>> =
+fun Arb.Companion.ioRaiseAnyError(): Arb<IO<Any, Nothing>> =
     any().map(IO.Companion::raiseError)
 
-fun Gen.Companion.ioRaiseAnyException(): Gen<IO<Nothing, Nothing>> =
-    oneOf(
+fun Arb.Companion.ioRaiseAnyException(): Arb<IO<Nothing, Nothing>> =
+    choice<IO<Nothing, Nothing>>(
         throwable().map(IO.Companion::raiseException),
         fatalThrowable().map(IO.Companion::raiseException)
     )
 
-fun Gen.Companion.any(): Gen<Any> =
-    oneOf(
-        string(),
-        int(),
-        short(),
-        long(),
-        float(),
-        double(),
-        bool(),
-        byte(),
-        uuid(),
-        file(),
-        localDate(),
-        localTime(),
-        localDateTime(),
-        duration(),
-        period(),
-        throwable(),
-        fatalThrowable(),
-        mapOfStringAndStringGenerator(),
-        uri(),
-        httpMethod(),
-        unit()
+fun Arb.Companion.throwable(): Arb<Throwable> =
+    element(
+        Exception(),
+        RuntimeException(),
+        IllegalArgumentException(),
+        IllegalStateException(),
+        IndexOutOfBoundsException(),
+        UnsupportedOperationException(),
+        ArithmeticException(),
+        NumberFormatException(),
+        NullPointerException(),
+        ClassCastException(),
+        AssertionError(),
+        NoSuchElementException(),
+        ConcurrentModificationException()
     )
 
-fun Gen.Companion.mapOfStringAndStringGenerator(): Gen<Map<String, String>> =
-    from(
+fun Arb.Companion.fatalThrowable(): Arb<Throwable> =
+    element(
+        Error(),
+        ThreadDeath(),
+        StackOverflowError(),
+        OutOfMemoryError(),
+        InterruptedException()
+    )
+
+fun Arb.Companion.any(): Arb<Any> =
+    choice(
+        string() as Arb<Any>,
+        int() as Arb<Any>,
+        short() as Arb<Any>,
+        long() as Arb<Any>,
+        float() as Arb<Any>,
+        double() as Arb<Any>,
+        bool() as Arb<Any>,
+        byte() as Arb<Any>,
+        uuid() as Arb<Any>,
+        file() as Arb<Any>,
+        localDate() as Arb<Any>,
+        localTime() as Arb<Any>,
+        localDateTime() as Arb<Any>,
+        period() as Arb<Any>,
+        throwable() as Arb<Any>,
+        fatalThrowable() as Arb<Any>,
+        mapOfStringAndStringGenerator() as Arb<Any>,
+        uri() as Arb<Any>,
+        httpMethod() as Arb<Any>,
+        unit() as Arb<Any>
+    )
+
+fun Arb.Companion.unit(): Arb<Unit> =
+    create { Unit }
+
+fun Arb.Companion.mapOfStringAndStringGenerator(): Arb<Map<String, String>> =
+    element(
         listOf(
             emptyMap(),
             mapOf(
-                string().random().first() to string().random().first()
+                string().next() to string().next()
             ),
             mapOf(
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first()
+                string().next() to string().next(),
+                string().next() to string().next()
             ),
             mapOf(
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first()
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next()
             ),
             mapOf(
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first()
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next()
             ),
             mapOf(
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first()
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next()
             ),
             mapOf(
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first(),
-                string().random().first() to string().random().first()
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next(),
+                string().next() to string().next()
             )
         )
     )
 
-fun Gen.Companion.uri(): Gen<URI> =
-    from(
+fun Arb.Companion.uri(): Arb<URI> =
+    element(
         listOf(
             URI.create("https://sparetimedevs.com"),
             URI.create("https://www.sparetimedevs.com"),
@@ -157,8 +203,8 @@ fun Gen.Companion.uri(): Gen<URI> =
         )
     )
 
-fun Gen.Companion.httpMethod(): Gen<HttpMethod> =
-    from(
+fun Arb.Companion.httpMethod(): Arb<HttpMethod> =
+    element(
         listOf(
             HttpMethod.GET,
             HttpMethod.HEAD,
@@ -171,17 +217,21 @@ fun Gen.Companion.httpMethod(): Gen<HttpMethod> =
         )
     )
 
-fun Gen.Companion.logLevel(): Gen<Level> =
-    from(
-        listOf(
-            Level.ALL,
-            Level.FINEST,
-            Level.FINER,
-            Level.FINE,
-            Level.CONFIG,
-            Level.INFO,
-            Level.WARNING,
-            Level.SEVERE,
-            Level.OFF
-        )
+fun Exhaustive.Companion.logLevel(): Exhaustive<Level> =
+    listOf(
+        Level.ALL,
+        Level.FINEST,
+        Level.FINER,
+        Level.FINE,
+        Level.CONFIG,
+        Level.INFO,
+        Level.WARNING,
+        Level.SEVERE,
+        Level.OFF
+    ).exhaustive()
+
+fun Arb.Companion.stringOrNull(): Arb<String?> =
+    choice<String?>(
+        string() as Arb<String?>,
+        create { null } as Arb<String?>
     )
