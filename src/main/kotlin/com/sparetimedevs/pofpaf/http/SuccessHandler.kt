@@ -24,13 +24,13 @@ import com.microsoft.azure.functions.HttpStatus
 
 @Suppress("UNUSED_PARAMETER")
 fun <A> handleSuccessWithDefaultHandler(
-    request: HttpRequestMessage<String?>,
+    request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     a: A
 ): IO<Nothing, HttpResponseMessage> =
     IO { request.createResponse(a) }
 
-private fun <A> HttpRequestMessage<String?>.createResponse(a: A): HttpResponseMessage =
+private fun <A> HttpRequestMessage<out Any?>.createResponse(a: A): HttpResponseMessage =
     this.createResponseBuilder(HttpStatus.OK)
         .body(a)
         .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)

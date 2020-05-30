@@ -25,14 +25,14 @@ import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 
 fun <E, A> handleHttp(
-    request: HttpRequestMessage<String?>,
+    request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     domainLogic: IO<E, A>,
-    handleSuccess: (request: HttpRequestMessage<String?>, context: ExecutionContext, a: A) -> IO<Nothing, HttpResponseMessage> =
+    handleSuccess: (request: HttpRequestMessage<out Any?>, context: ExecutionContext, a: A) -> IO<Nothing, HttpResponseMessage> =
         ::handleSuccessWithDefaultHandler,
-    handleDomainError: (request: HttpRequestMessage<String?>, context: ExecutionContext, e: E) -> IO<Nothing, HttpResponseMessage> =
+    handleDomainError: (request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E) -> IO<Nothing, HttpResponseMessage> =
         ::handleDomainErrorWithDefaultHandler,
-    handleSystemFailure: (request: HttpRequestMessage<String?>, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, HttpResponseMessage> =
+    handleSystemFailure: (request: HttpRequestMessage<out Any?>, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, HttpResponseMessage> =
         ::handleSystemFailureWithDefaultHandler
 ): HttpResponseMessage =
     domainLogic

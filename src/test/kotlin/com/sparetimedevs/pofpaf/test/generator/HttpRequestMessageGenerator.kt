@@ -17,17 +17,12 @@
 package com.sparetimedevs.pofpaf.test.generator
 
 import com.microsoft.azure.functions.HttpRequestMessage
-import io.kotlintest.properties.Gen
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.bind
 
-internal class HttpRequestMessageGenerator : Gen<HttpRequestMessage<String?>> {
-    override fun constants(): List<HttpRequestMessage<String?>> = emptyList()
-    override fun random(): Sequence<HttpRequestMessage<String?>> = generateSequence {
-        HttpRequestMessageTestImpl(
-                Gen.uri().random().first(),
-                Gen.httpMethod().random().first(),
-                Gen.mapOfStringAndStringGenerator().random().first(),
-                Gen.mapOfStringAndStringGenerator().random().first(),
-                Gen.string().orNull().random().first()
-        )
+fun Arb.Companion.httpRequestMessageGenerator(): Arb<HttpRequestMessage<String?>> =
+    bind(
+        uri(), httpMethod(), mapOfStringAndStringGenerator(), mapOfStringAndStringGenerator(), stringOrNull()
+    ) { uri, httpMethod, headers, queryParameters, body ->
+        HttpRequestMessageTestImpl(uri, httpMethod, headers, queryParameters, body)
     }
-}
