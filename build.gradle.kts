@@ -46,6 +46,10 @@ dependencies {
     testImplementation(mockkGroup, mockkArtifact, mockkVersion)
 }
 
+sourceSets {
+    getByName("test").java.srcDirs("src/test/kotlin")
+}
+
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
