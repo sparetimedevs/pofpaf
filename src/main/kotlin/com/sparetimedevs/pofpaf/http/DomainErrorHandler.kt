@@ -16,18 +16,18 @@
 
 package com.sparetimedevs.pofpaf.http
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 
 @Suppress("UNUSED_PARAMETER")
-fun <E> handleDomainErrorWithDefaultHandler(request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E): IO<Nothing, HttpResponseMessage> =
+suspend fun <E> handleDomainErrorWithDefaultHandler(request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E): Either<Throwable, HttpResponseMessage> =
     createResponse(request, e)
 
-fun <E> createResponse(request: HttpRequestMessage<out Any?>, e: E): IO<Nothing, HttpResponseMessage> =
-    IO {
+suspend fun <E> createResponse(request: HttpRequestMessage<out Any?>, e: E): Either<Throwable, HttpResponseMessage> =
+    Either.catch {
         request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ErrorResponse("$ERROR_MESSAGE_PREFIX $e"))
             .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)

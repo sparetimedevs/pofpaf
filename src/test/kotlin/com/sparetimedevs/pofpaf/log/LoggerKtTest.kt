@@ -16,12 +16,12 @@
 
 package com.sparetimedevs.pofpaf.log
 
-import arrow.fx.unsafeRunSync
 import com.microsoft.azure.functions.ExecutionContext
 import com.sparetimedevs.pofpaf.test.generator.executionContextArb
 import com.sparetimedevs.pofpaf.test.generator.logLevel
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.arbitrary.string
@@ -33,25 +33,27 @@ import java.util.logging.Level
 class LoggerKtTest : StringSpec({
     
     val contextMock = mockk<ExecutionContext>()
-    every { contextMock.logger.log(any(), any<String>()) } throws RuntimeException("Break stuff")
+    every { contextMock.logger.log(any(), any<String>()) } throws exception
     
     "Should not yield anything other than Unit when run unsafe." {
         checkAll(Arb.executionContextArb(), Exhaustive.logLevel(), Arb.string(maxSize = 10_000)) { context: ExecutionContext,
                                                                                                    level: Level,
                                                                                                    message: String ->
             
-            val result = log(context, level, message).unsafeRunSync()
+            val result = log(context, level, message)
             
-            result.shouldBeInstanceOf<Unit>()
+            result.shouldBeRight()
         }
     }
     
     "Should not throw exception when run unsafe." {
         checkAll(Exhaustive.logLevel(), Arb.string(maxSize = 100_000)) { level: Level, message: String ->
             
-            val result = log(contextMock, level, message).unsafeRunSync()
+            val result = log(contextMock, level, message)
             
-            result.shouldBeInstanceOf<Unit>()
+            result.shouldBeLeft(exception)
         }
     }
 })
+
+private val exception = RuntimeException("Break stuff")

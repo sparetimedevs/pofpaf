@@ -16,9 +16,10 @@
 
 package com.sparetimedevs.pofpaf.timer
 
-import arrow.fx.IO
+import arrow.core.Either
+import arrow.core.right
 import com.microsoft.azure.functions.ExecutionContext
 
 @Suppress("UNUSED_PARAMETER")
-fun <E> handleDomainErrorWithDefaultHandler(timerInfo: String, context: ExecutionContext, e: E): IO<Nothing, Unit> =
-    IO { }
+suspend fun <E> handleDomainErrorWithDefaultHandler(timerInfo: String, context: ExecutionContext, e: E): Either<Throwable, Unit> =
+    Unit.right()

@@ -16,17 +16,19 @@
 
 package com.sparetimedevs.pofpaf.http
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.pofpaf.test.generator.executionContextArb
 import com.sparetimedevs.pofpaf.test.generator.httpRequestMessageGenerator
-import com.sparetimedevs.pofpaf.test.generator.ioJustAny
-import com.sparetimedevs.pofpaf.test.generator.ioOfAnyAndAny
-import com.sparetimedevs.pofpaf.test.generator.ioRaiseAnyError
-import com.sparetimedevs.pofpaf.test.generator.ioRaiseAnyException
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsAnyLeft
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsAnyRight
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsEitherAnyOrAnyOrThrows
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatThrows
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatThrowsFatalThrowable
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
@@ -40,10 +42,10 @@ class HttpHandlerKtTest : StringSpec({
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
-            Arb.ioOfAnyAndAny()
+            Arb.suspendFunThatReturnsEitherAnyOrAnyOrThrows()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
-            domainLogic: IO<Any, Any> ->
+            domainLogic: suspend () -> Either<Any, Any> ->
             
             val response =
                 handleHttp(
@@ -57,14 +59,33 @@ class HttpHandlerKtTest : StringSpec({
         }
     }
     
+    "Should throw a Throwable when a fatal Throwable is thrown." {
+        checkAll(
+            Arb.httpRequestMessageGenerator(),
+            Arb.executionContextArb(),
+            Arb.suspendFunThatThrowsFatalThrowable()
+        ) { request: HttpRequestMessage<String?>,
+            context: ExecutionContext,
+            domainLogic: suspend () -> Either<Any, Any> ->
+            
+            shouldThrow<Throwable> {
+                handleHttp(
+                    request = request,
+                    context = context,
+                    domainLogic = domainLogic
+                )
+            }
+        }
+    }
+    
     "Should yield an HttpResponseMessage when an exception is thrown in the handleSuccess supplied function." {
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
-            Arb.ioJustAny()
+            Arb.suspendFunThatReturnsAnyRight()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
-            domainLogic: IO<Any, Any> ->
+            domainLogic: suspend () -> Either<Any, Any> ->
             
             val response =
                 handleHttp(
@@ -85,16 +106,16 @@ class HttpHandlerKtTest : StringSpec({
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
-            Arb.ioRaiseAnyError()
+            Arb.suspendFunThatReturnsAnyLeft()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
-            ioRaiseAnyError: IO<Any, Nothing> ->
+            domainLogic: suspend () -> Either<Any, Any> ->
             
             val response =
                 handleHttp(
                     request = request,
                     context = context,
-                    domainLogic = ioRaiseAnyError,
+                    domainLogic = domainLogic,
                     handleDomainError = ::throwException
                 )
             
@@ -109,16 +130,16 @@ class HttpHandlerKtTest : StringSpec({
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
-            Arb.ioRaiseAnyException()
+            Arb.suspendFunThatThrows()
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
-            ioRaiseAnyException: IO<Any, Nothing> ->
+            domainLogic: suspend () -> Either<Any, Any> ->
             
             val response =
                 handleHttp(
                     request = request,
                     context = context,
-                    domainLogic = ioRaiseAnyException,
+                    domainLogic = domainLogic,
                     handleSystemFailure = ::throwException
                 )
             
@@ -133,5 +154,5 @@ class HttpHandlerKtTest : StringSpec({
 private val exception = RuntimeException("An Exception is thrown while handling the result of the domain logic.")
 
 @Suppress("UNUSED_PARAMETER")
-private fun <T> throwException(request: HttpRequestMessage<out Any?>, context: ExecutionContext, t: T): IO<Nothing, HttpResponseMessage> =
-    IO { throw exception }
+private suspend fun <T> throwException(request: HttpRequestMessage<out Any?>, context: ExecutionContext, t: T): Either<Throwable, HttpResponseMessage> =
+    throw exception
