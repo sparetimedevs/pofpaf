@@ -16,19 +16,19 @@
 
 package com.sparetimedevs.pofpaf.http
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 
 @Suppress("UNUSED_PARAMETER")
-fun <A> handleSuccessWithDefaultHandler(
+suspend fun <A> handleSuccessWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     a: A
-): IO<Nothing, HttpResponseMessage> =
-    IO { request.createResponse(a) }
+): Either<Throwable, HttpResponseMessage> =
+    Either.catch { request.createResponse(a) }
 
 private fun <A> HttpRequestMessage<out Any?>.createResponse(a: A): HttpResponseMessage =
     this.createResponseBuilder(HttpStatus.OK)

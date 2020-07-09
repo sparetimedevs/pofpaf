@@ -16,25 +16,27 @@
 
 package com.sparetimedevs.pofpaf.http
 
-import arrow.fx.IO
-import arrow.fx.followedBy
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
 import com.sparetimedevs.pofpaf.log.log
+import com.sparetimedevs.pofpaf.util.flatMap
 import java.util.logging.Level
 
-fun handleSystemFailureWithDefaultHandler(
+suspend fun handleSystemFailureWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     throwable: Throwable
-): IO<Nothing, HttpResponseMessage> =
+): Either<Throwable, HttpResponseMessage> =
     log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
-        .followedBy(createResponse(request, throwable))
+        .flatMap {
+            createResponse(request, throwable)
+        }
 
-fun createResponse(request: HttpRequestMessage<out Any?>, throwable: Throwable): IO<Nothing, HttpResponseMessage> =
-    IO {
+suspend fun createResponse(request: HttpRequestMessage<out Any?>, throwable: Throwable): Either<Throwable, HttpResponseMessage> =
+    Either.catch {
         request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ErrorResponse("$THROWABLE_MESSAGE_PREFIX $throwable"))
             .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)

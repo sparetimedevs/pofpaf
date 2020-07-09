@@ -16,10 +16,10 @@
 
 package com.sparetimedevs.pofpaf.timer
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.sparetimedevs.pofpaf.test.generator.executionContextArb
-import com.sparetimedevs.pofpaf.test.generator.ioOfAnyAndUnit
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsEitherAnyOrUnitOrThrows
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
@@ -32,10 +32,10 @@ class TimerHandlerKtTest : StringSpec({
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
-            Arb.ioOfAnyAndUnit()
+            Arb.suspendFunThatReturnsEitherAnyOrUnitOrThrows()
         ) { timerInfo: String,
             context: ExecutionContext,
-            domainLogic: IO<Any, Unit> ->
+            domainLogic: suspend () -> Either<Any, Unit> ->
             
             val response =
                 handleTimer(
@@ -52,10 +52,10 @@ class TimerHandlerKtTest : StringSpec({
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
-            Arb.ioOfAnyAndUnit()
+            Arb.suspendFunThatReturnsEitherAnyOrUnitOrThrows()
         ) { timerInfo: String,
             context: ExecutionContext,
-            domainLogic: IO<Any, Unit> ->
+            domainLogic: suspend () -> Either<Any, Unit> ->
             
             val response =
                 handleTimer(
@@ -73,10 +73,10 @@ class TimerHandlerKtTest : StringSpec({
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
-            Arb.ioOfAnyAndUnit()
+            Arb.suspendFunThatReturnsEitherAnyOrUnitOrThrows()
         ) { timerInfo: String,
             context: ExecutionContext,
-            domainLogic: IO<Any, Unit> ->
+            domainLogic: suspend () -> Either<Any, Unit> ->
             
             val response =
                 handleTimer(
@@ -94,10 +94,10 @@ class TimerHandlerKtTest : StringSpec({
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
-            Arb.ioOfAnyAndUnit()
+            Arb.suspendFunThatReturnsEitherAnyOrUnitOrThrows()
         ) { timerInfo: String,
             context: ExecutionContext,
-            domainLogic: IO<Any, Unit> ->
+            domainLogic: suspend () -> Either<Any, Unit> ->
             
             val response =
                 handleTimer(
@@ -115,9 +115,9 @@ class TimerHandlerKtTest : StringSpec({
 private val exception = RuntimeException("An Exception is thrown while handling the result of the domain logic.")
 
 @Suppress("UNUSED_PARAMETER")
-private fun throwException(timerInfo: String, context: ExecutionContext): IO<Nothing, Unit> =
-    IO { throw exception }
+private suspend fun throwException(timerInfo: String, context: ExecutionContext): Either<Throwable, Unit> =
+    throw exception
 
 @Suppress("UNUSED_PARAMETER")
-private fun <T> throwException(timerInfo: String, context: ExecutionContext, t: T): IO<Nothing, Unit> =
-    IO { throw exception }
+private suspend fun <T> throwException(timerInfo: String, context: ExecutionContext, t: T): Either<Throwable, Unit> =
+    throw exception

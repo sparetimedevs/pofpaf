@@ -16,7 +16,9 @@
 
 package com.sparetimedevs.pofpaf.test.generator
 
-import arrow.fx.IO
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.microsoft.azure.functions.HttpMethod
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
@@ -43,34 +45,34 @@ import io.kotest.property.exhaustive.exhaustive
 import java.net.URI
 import java.util.logging.Level
 
-fun Arb.Companion.ioOfAnyAndAny(): Arb<IO<Any, Any>> =
+fun Arb.Companion.suspendFunThatReturnsEitherAnyOrAnyOrThrows(): Arb<suspend () -> Either<Any, Any>> =
     choice(
-        ioJustAny() as Arb<IO<Any, Any>>,
-        ioRaiseAnyError() as Arb<IO<Any, Any>>,
-        ioRaiseAnyException() as Arb<IO<Any, Any>>
+        suspendFunThatReturnsAnyRight(),
+        suspendFunThatReturnsAnyLeft(),
+        suspendFunThatThrows()
     )
 
-fun Arb.Companion.ioOfAnyAndUnit(): Arb<IO<Any, Unit>> =
+fun Arb.Companion.suspendFunThatReturnsEitherAnyOrUnitOrThrows(): Arb<suspend () -> Either<Any, Unit>> =
     choice(
-        ioJustUnit() as Arb<IO<Any, Unit>>,
-        ioRaiseAnyError() as Arb<IO<Any, Unit>>,
-        ioRaiseAnyException() as Arb<IO<Any, Unit>>
+        suspendFunThatReturnsUnitRight(),
+        suspendFunThatReturnsAnyLeft() as Arb<suspend () -> Either<Any, Unit>>,
+        suspendFunThatThrows() as Arb<suspend () -> Either<Any, Unit>>
     )
 
-fun Arb.Companion.ioJustUnit(): Arb<IO<Nothing, Unit>> =
-    unit().map(IO.Companion::just)
+fun Arb.Companion.suspendFunThatReturnsUnitRight(): Arb<suspend () -> Either<Any, Unit>> =
+    unit().map { suspend { it.right() } }
 
-fun Arb.Companion.ioJustAny(): Arb<IO<Nothing, Any>> =
-    any().map(IO.Companion::just)
+fun Arb.Companion.suspendFunThatReturnsAnyRight(): Arb<suspend () -> Either<Any, Any>> =
+    any().map { suspend { it.right() } }
 
-fun Arb.Companion.ioRaiseAnyError(): Arb<IO<Any, Nothing>> =
-    any().map(IO.Companion::raiseError)
+fun Arb.Companion.suspendFunThatReturnsAnyLeft(): Arb<suspend () -> Either<Any, Any>> =
+    any().map { suspend { it.left() } }
 
-fun Arb.Companion.ioRaiseAnyException(): Arb<IO<Nothing, Nothing>> =
-    choice<IO<Nothing, Nothing>>(
-        throwable().map(IO.Companion::raiseException),
-        fatalThrowable().map(IO.Companion::raiseException)
-    )
+fun Arb.Companion.suspendFunThatThrows(): Arb<suspend () -> Either<Any, Any>> =
+    throwable().map { suspend { throw it } } as Arb<suspend () -> Either<Any, Any>>
+
+fun Arb.Companion.suspendFunThatThrowsFatalThrowable(): Arb<suspend () -> Either<Any, Any>> =
+    fatalThrowable().map { suspend { throw it } } as Arb<suspend () -> Either<Any, Any>>
 
 fun Arb.Companion.throwable(): Arb<Throwable> =
     element(
@@ -91,12 +93,13 @@ fun Arb.Companion.throwable(): Arb<Throwable> =
 
 fun Arb.Companion.fatalThrowable(): Arb<Throwable> =
     element(
-        Error(),
+        MyVirtualMachineError(),
         ThreadDeath(),
-        StackOverflowError(),
-        OutOfMemoryError(),
-        InterruptedException()
+        InterruptedException(),
+        LinkageError()
     )
+
+class MyVirtualMachineError : VirtualMachineError()
 
 fun Arb.Companion.any(): Arb<Any> =
     choice(
@@ -231,7 +234,7 @@ fun Exhaustive.Companion.logLevel(): Exhaustive<Level> =
     ).exhaustive()
 
 fun Arb.Companion.stringOrNull(): Arb<String?> =
-    choice<String?>(
+    choice(
         string() as Arb<String?>,
         create { null } as Arb<String?>
     )

@@ -2,13 +2,14 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.Date
 
 plugins {
-    kotlin("jvm") version "1.3.70"
+    kotlin("jvm") version "1.3.72"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.4"
+    id("com.jfrog.artifactory") version "4.15.2"
 }
 
 group = "com.sparetimedevs"
-version = "0.0.1-EXPERIMENTAL-we9mk5l"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -22,26 +23,30 @@ dependencies {
     val arrowGroup = "io.arrow-kt"
     val kotestGroup = "io.kotest"
     val mockkGroup = "io.mockk"
-
+    
     val azureFunctionsArtifact = "azure-functions-java-library"
-    val arrowFxArtifact = "arrow-fx"
+    val arrowCoreDataArtifact = "arrow-core-data"
+    val arrowFxCoroutinesArtifact = "arrow-fx-coroutines"
     val kotestRunnerJUnit5Artifact = "kotest-runner-junit5-jvm"
     val kotestAssertionsCoreArtifact = "kotest-assertions-core-jvm"
+    val kotestAssertionsArrowArtifact = "kotest-assertions-arrow-jvm"
     val kotestPropertyArtifact = "kotest-property-jvm"
     val mockkArtifact = "mockk"
-
+    
     val azureFunctionsVersion: String by project
     val arrowVersion: String by project
     val kotestVersion: String by project
     val mockkVersion: String by project
-
+    
     api(azureFunctionsGroup, azureFunctionsArtifact, azureFunctionsVersion)
-    api(arrowGroup, arrowFxArtifact, arrowVersion)
-
+    api(arrowGroup, arrowCoreDataArtifact, arrowVersion)
+    
+    implementation(arrowGroup, arrowFxCoroutinesArtifact, arrowVersion)
     implementation(kotlin("stdlib-jdk8"))
-
+    
     testImplementation(kotestGroup, kotestRunnerJUnit5Artifact, kotestVersion)
     testImplementation(kotestGroup, kotestAssertionsCoreArtifact, kotestVersion)
+    testImplementation(kotestGroup, kotestAssertionsArrowArtifact, kotestVersion) { exclude(arrowGroup) }
     testImplementation(kotestGroup, kotestPropertyArtifact, kotestVersion)
     testImplementation(mockkGroup, mockkArtifact, mockkVersion)
 }
@@ -87,9 +92,10 @@ publishing {
     }
 }
 
+val bintrayUsername: String? by project
+val bintrayApiKey: String? by project
+
 bintray {
-    val bintrayUsername: String? by project
-    val bintrayApiKey: String? by project
     user = bintrayUsername
     key = bintrayApiKey
     setPublications("default")
@@ -104,5 +110,24 @@ bintray {
             name = project.version as? String
             released = Date().toString()
         })
+    })
+}
+
+artifactory {
+    setContextUrl("https://oss.jfrog.org")
+    publish(delegateClosureOf<org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig> {
+        repository(delegateClosureOf<groovy.lang.GroovyObject> {
+            setProperty("repoKey", "oss-snapshot-local")
+            setProperty("username", bintrayUsername)
+            setProperty("password", bintrayApiKey)
+        })
+        defaults(delegateClosureOf<groovy.lang.GroovyObject> {
+            invokeMethod("publications", publishing.publications.names.toTypedArray())
+            setProperty("publishArtifacts", true)
+            setProperty("publishPom", true)
+        })
+    })
+    resolve(delegateClosureOf<org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig> {
+        setProperty("repoKey", "jcenter")
     })
 }

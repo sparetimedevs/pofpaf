@@ -16,34 +16,68 @@
 
 package com.sparetimedevs.pofpaf.timer
 
-import arrow.fx.IO
-import arrow.fx.handleErrorWith
-import arrow.fx.redeemWith
-import arrow.fx.unsafeRunSync
+import arrow.core.Either
+import arrow.core.right
 import com.microsoft.azure.functions.ExecutionContext
+import com.sparetimedevs.pofpaf.http.THROWABLE_MESSAGE_PREFIX
+import com.sparetimedevs.pofpaf.log.log
+import com.sparetimedevs.pofpaf.run.unsafeRunSync
+import com.sparetimedevs.pofpaf.util.handleItSafely
+import java.util.logging.Level
 
 fun <E> handleTimer(
     timerInfo: String,
     context: ExecutionContext,
-    domainLogic: IO<E, Unit>,
-    handleSuccess: (timerInfo: String, context: ExecutionContext) -> IO<Nothing, Unit> =
+    domainLogic: suspend () -> Either<E, Unit>,
+    handleSuccess: suspend (timerInfo: String, context: ExecutionContext) -> Either<Throwable, Unit> =
         ::handleSuccessWithDefaultHandler,
-    handleDomainError: (timerInfo: String, context: ExecutionContext, e: E) -> IO<Nothing, Unit> =
+    handleDomainError: suspend (timerInfo: String, context: ExecutionContext, e: E) -> Either<Throwable, Unit> =
         ::handleDomainErrorWithDefaultHandler,
-    handleSystemFailure: (timerInfo: String, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, Unit> =
+    handleSystemFailure: suspend (timerInfo: String, context: ExecutionContext, throwable: Throwable) -> Either<Throwable, Unit> =
         ::handleSystemFailureWithDefaultHandler
 ): Unit =
-    domainLogic
-        .redeemWith(
-            { throwable: Throwable ->
-                handleSystemFailure(timerInfo, context, throwable)
+    suspend {
+        doHandleTimer(
+            timerInfo,
+            context,
+            domainLogic,
+            handleSuccess,
+            handleDomainError,
+            handleSystemFailure
+        )
+    }.unsafeRunSync()
+
+suspend fun <E> doHandleTimer(
+    timerInfo: String,
+    context: ExecutionContext,
+    domainLogic: suspend () -> Either<E, Unit>,
+    handleSuccess: suspend (timerInfo: String, context: ExecutionContext) -> Either<Throwable, Unit>,
+    handleDomainError: suspend (timerInfo: String, context: ExecutionContext, e: E) -> Either<Throwable, Unit>,
+    handleSystemFailure: suspend (timerInfo: String, context: ExecutionContext, throwable: Throwable) -> Either<Throwable, Unit>
+): Unit =
+    Either.catch {
+        domainLogic()
+    }
+        .fold(
+            {
+                handleItSafely { handleSystemFailure(timerInfo, context, it) }
             },
-            { e: E ->
-                handleDomainError(timerInfo, context, e)
-            },
-            { _ ->
-                handleSuccess(timerInfo, context)
+            {
+                it.fold(
+                    { e: E ->
+                        handleItSafely { handleDomainError(timerInfo, context, e) }
+                    },
+                    { _ ->
+                        handleItSafely { handleSuccess(timerInfo, context) }
+                    }
+                )
             }
         )
-        .handleErrorWith { handleSystemFailureWithDefaultHandler(timerInfo, context, it) }
-        .unsafeRunSync()
+        .fold({ handleSystemFailureWithDefaultHandler(timerInfo, context, it) }, { it.right() })
+        .fold(
+            { throwable: Throwable ->
+                log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
+                throw throwable
+            },
+            { }
+        )

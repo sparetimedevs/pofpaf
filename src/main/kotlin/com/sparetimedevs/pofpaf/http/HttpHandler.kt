@@ -16,36 +16,69 @@
 
 package com.sparetimedevs.pofpaf.http
 
-import arrow.fx.IO
-import arrow.fx.handleErrorWith
-import arrow.fx.redeemWith
-import arrow.fx.unsafeRunSync
+import arrow.core.Either
+import arrow.core.right
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
+import com.sparetimedevs.pofpaf.log.log
+import com.sparetimedevs.pofpaf.run.unsafeRunSync
+import com.sparetimedevs.pofpaf.util.handleItSafely
+import java.util.logging.Level
 
 fun <E, A> handleHttp(
     request: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
-    domainLogic: IO<E, A>,
-    handleSuccess: (request: HttpRequestMessage<out Any?>, context: ExecutionContext, a: A) -> IO<Nothing, HttpResponseMessage> =
+    domainLogic: suspend () -> Either<E, A>,
+    handleSuccess: suspend (request: HttpRequestMessage<out Any?>, context: ExecutionContext, a: A) -> Either<Throwable, HttpResponseMessage> =
         ::handleSuccessWithDefaultHandler,
-    handleDomainError: (request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E) -> IO<Nothing, HttpResponseMessage> =
+    handleDomainError: suspend (request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E) -> Either<Throwable, HttpResponseMessage> =
         ::handleDomainErrorWithDefaultHandler,
-    handleSystemFailure: (request: HttpRequestMessage<out Any?>, context: ExecutionContext, throwable: Throwable) -> IO<Nothing, HttpResponseMessage> =
+    handleSystemFailure: suspend (request: HttpRequestMessage<out Any?>, context: ExecutionContext, throwable: Throwable) -> Either<Throwable, HttpResponseMessage> =
         ::handleSystemFailureWithDefaultHandler
 ): HttpResponseMessage =
-    domainLogic
-        .redeemWith(
-            { throwable: Throwable ->
-                handleSystemFailure(request, context, throwable)
+    suspend {
+        doHandleHttp(
+            request,
+            context,
+            domainLogic,
+            handleSuccess,
+            handleDomainError,
+            handleSystemFailure
+        )
+    }.unsafeRunSync()
+
+suspend fun <E, A> doHandleHttp(
+    request: HttpRequestMessage<out Any?>,
+    context: ExecutionContext,
+    domainLogic: suspend () -> Either<E, A>,
+    handleSuccess: suspend (request: HttpRequestMessage<out Any?>, context: ExecutionContext, a: A) -> Either<Throwable, HttpResponseMessage>,
+    handleDomainError: suspend (request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E) -> Either<Throwable, HttpResponseMessage>,
+    handleSystemFailure: suspend (request: HttpRequestMessage<out Any?>, context: ExecutionContext, throwable: Throwable) -> Either<Throwable, HttpResponseMessage>
+): HttpResponseMessage =
+    Either.catch {
+        domainLogic()
+    }
+        .fold(
+            {
+                handleItSafely { handleSystemFailure(request, context, it) }
             },
-            { e: E ->
-                handleDomainError(request, context, e)
-            },
-            { a: A ->
-                handleSuccess(request, context, a)
+            {
+                it.fold(
+                    { e: E ->
+                        handleItSafely { handleDomainError(request, context, e) }
+                    },
+                    { a: A ->
+                        handleItSafely { handleSuccess(request, context, a) }
+                    }
+                )
             }
         )
-        .handleErrorWith { handleSystemFailureWithDefaultHandler(request, context, it) }
-        .unsafeRunSync()
+        .fold({ handleSystemFailureWithDefaultHandler(request, context, it) }, { it.right() })
+        .fold(
+            { throwable: Throwable ->
+                log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
+                throw throwable
+            },
+            { it }
+        )

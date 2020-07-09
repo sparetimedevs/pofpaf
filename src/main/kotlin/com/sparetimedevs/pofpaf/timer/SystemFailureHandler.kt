@@ -16,12 +16,12 @@
 
 package com.sparetimedevs.pofpaf.timer
 
-import arrow.fx.IO
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.sparetimedevs.pofpaf.http.THROWABLE_MESSAGE_PREFIX
 import com.sparetimedevs.pofpaf.log.log
 import java.util.logging.Level
 
 @Suppress("UNUSED_PARAMETER")
-fun handleSystemFailureWithDefaultHandler(timerInfo: String, context: ExecutionContext, throwable: Throwable): IO<Nothing, Unit> =
+suspend fun handleSystemFailureWithDefaultHandler(timerInfo: String, context: ExecutionContext, throwable: Throwable): Either<Throwable, Unit> =
     log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")

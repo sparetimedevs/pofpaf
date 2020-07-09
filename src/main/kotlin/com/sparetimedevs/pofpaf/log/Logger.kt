@@ -16,12 +16,11 @@
 
 package com.sparetimedevs.pofpaf.log
 
-import arrow.fx.IO
-import arrow.fx.handleError
+import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import java.util.logging.Level
 
-fun log(context: ExecutionContext, level: Level, message: String): IO<Nothing, Unit> =
-    IO {
+suspend fun log(context: ExecutionContext, level: Level, message: String): Either<Throwable, Unit> =
+    Either.catch {
         context.logger.log(level, message)
-    }.handleError { /* Do nothing in case of logging resulting in an exception being thrown. */ }
+    }
