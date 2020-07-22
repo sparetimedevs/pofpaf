@@ -20,6 +20,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.microsoft.azure.functions.HttpMethod
+import com.sparetimedevs.pofpaf.log.Level
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.arbitrary.bool
@@ -43,7 +44,6 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.arbitrary.uuid
 import io.kotest.property.exhaustive.exhaustive
 import java.net.URI
-import java.util.logging.Level
 
 fun Arb.Companion.suspendFunThatReturnsEitherAnyOrAnyOrThrows(): Arb<suspend () -> Either<Any, Any>> =
     choice(
@@ -54,7 +54,7 @@ fun Arb.Companion.suspendFunThatReturnsEitherAnyOrAnyOrThrows(): Arb<suspend () 
 
 fun Arb.Companion.suspendFunThatReturnsEitherAnyOrUnitOrThrows(): Arb<suspend () -> Either<Any, Unit>> =
     choice(
-        suspendFunThatReturnsUnitRight(),
+        suspendFunThatReturnsUnitRight() as Arb<suspend () -> Either<Any, Unit>>,
         suspendFunThatReturnsAnyLeft() as Arb<suspend () -> Either<Any, Unit>>,
         suspendFunThatThrows() as Arb<suspend () -> Either<Any, Unit>>
     )
@@ -222,15 +222,10 @@ fun Arb.Companion.httpMethod(): Arb<HttpMethod> =
 
 fun Exhaustive.Companion.logLevel(): Exhaustive<Level> =
     listOf(
-        Level.ALL,
-        Level.FINEST,
-        Level.FINER,
-        Level.FINE,
-        Level.CONFIG,
         Level.INFO,
-        Level.WARNING,
-        Level.SEVERE,
-        Level.OFF
+        Level.DEBUG,
+        Level.WARN,
+        Level.ERROR
     ).exhaustive()
 
 fun Arb.Companion.stringOrNull(): Arb<String?> =

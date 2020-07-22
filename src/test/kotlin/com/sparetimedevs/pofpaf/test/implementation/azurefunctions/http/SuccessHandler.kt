@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.pofpaf.http
+package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.http
 
 import arrow.core.Either
-import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.log
-import com.sparetimedevs.pofpaf.util.flatMap
-import java.util.logging.Level
+import com.sparetimedevs.pofpaf.log.Level
+import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE_APPLICATION_JSON
 
-suspend fun handleSystemFailureWithDefaultHandler(
+@Suppress("UNUSED_PARAMETER")
+suspend fun <A> handleSuccessWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
-    context: ExecutionContext,
-    throwable: Throwable
+    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    a: A
 ): Either<Throwable, HttpResponseMessage> =
-    log(context, Level.SEVERE, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
-        .flatMap {
-            createResponse(request, throwable)
-        }
+    Either.catch { request.createResponse(a) }
 
-suspend fun createResponse(request: HttpRequestMessage<out Any?>, throwable: Throwable): Either<Throwable, HttpResponseMessage> =
-    Either.catch {
-        request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse("$THROWABLE_MESSAGE_PREFIX $throwable"))
-            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-            .build()
-    }
+private fun <A> HttpRequestMessage<out Any?>.createResponse(a: A): HttpResponseMessage =
+    this.createResponseBuilder(HttpStatus.OK)
+        .header(
+            CONTENT_TYPE,
+            CONTENT_TYPE_APPLICATION_JSON
+        )
+        .body(a)
+        .build()

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.pofpaf.log
+package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.timer
 
 import arrow.core.Either
-import com.microsoft.azure.functions.ExecutionContext
-import java.util.logging.Level
+import arrow.core.right
+import com.sparetimedevs.pofpaf.log.Level
 
-suspend fun log(context: ExecutionContext, level: Level, message: String): Either<Throwable, Unit> =
-    Either.catch {
-        context.logger.log(level, message)
-    }
+@Suppress("UNUSED_PARAMETER")
+suspend fun handleSuccessWithDefaultHandler(timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>): Either<Throwable, Unit> =
+    Unit.right()

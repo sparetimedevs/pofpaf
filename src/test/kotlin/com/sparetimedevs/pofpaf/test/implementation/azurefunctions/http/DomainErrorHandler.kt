@@ -14,22 +14,33 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.pofpaf.http
+package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.http
 
 import arrow.core.Either
-import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
+import com.sparetimedevs.pofpaf.log.Level
+import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE
+import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE_APPLICATION_JSON
+import com.sparetimedevs.pofpaf.test.implementation.general.ERROR_MESSAGE_PREFIX
+import com.sparetimedevs.pofpaf.test.implementation.general.ErrorResponse
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun <E> handleDomainErrorWithDefaultHandler(request: HttpRequestMessage<out Any?>, context: ExecutionContext, e: E): Either<Throwable, HttpResponseMessage> =
+suspend fun <E> handleDomainErrorWithDefaultHandler(
+    request: HttpRequestMessage<out Any?>,
+    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    e: E
+): Either<Throwable, HttpResponseMessage> =
     createResponse(request, e)
 
 suspend fun <E> createResponse(request: HttpRequestMessage<out Any?>, e: E): Either<Throwable, HttpResponseMessage> =
     Either.catch {
         request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+            .header(
+                CONTENT_TYPE,
+                CONTENT_TYPE_APPLICATION_JSON
+            )
             .body(ErrorResponse("$ERROR_MESSAGE_PREFIX $e"))
-            .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
             .build()
     }
