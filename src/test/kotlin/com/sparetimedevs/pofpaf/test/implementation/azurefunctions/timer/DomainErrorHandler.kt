@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.pofpaf.timer
+package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.timer
 
 import arrow.core.Either
 import arrow.core.right
-import com.microsoft.azure.functions.ExecutionContext
+import com.sparetimedevs.pofpaf.log.Level
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun handleSuccessWithDefaultHandler(timerInfo: String, context: ExecutionContext): Either<Throwable, Unit> =
+suspend fun <E> handleDomainErrorWithDefaultHandler(timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, e: E): Either<Throwable, Unit> =
     Unit.right()

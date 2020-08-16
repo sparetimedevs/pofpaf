@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.pofpaf.http
+package com.sparetimedevs.pofpaf.log
 
-const val CONTENT_TYPE = "Content-Type"
-const val CONTENT_TYPE_APPLICATION_JSON = "application/json"
-const val ERROR_MESSAGE_PREFIX = "An error has occurred. The error is:"
 const val THROWABLE_MESSAGE_PREFIX = "An exception was thrown. The exception is:"

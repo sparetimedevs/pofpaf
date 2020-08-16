@@ -19,12 +19,11 @@ repositories {
 }
 
 dependencies {
-    val azureFunctionsGroup = "com.microsoft.azure.functions"
     val arrowGroup = "io.arrow-kt"
     val kotestGroup = "io.kotest"
     val mockkGroup = "io.mockk"
+    val azureFunctionsGroup = "com.microsoft.azure.functions"
     
-    val azureFunctionsArtifact = "azure-functions-java-library"
     val arrowCoreDataArtifact = "arrow-core-data"
     val arrowFxCoroutinesArtifact = "arrow-fx-coroutines"
     val kotestRunnerJUnit5Artifact = "kotest-runner-junit5-jvm"
@@ -32,13 +31,13 @@ dependencies {
     val kotestAssertionsArrowArtifact = "kotest-assertions-arrow-jvm"
     val kotestPropertyArtifact = "kotest-property-jvm"
     val mockkArtifact = "mockk"
+    val azureFunctionsArtifact = "azure-functions-java-library"
     
-    val azureFunctionsVersion: String by project
     val arrowVersion: String by project
     val kotestVersion: String by project
     val mockkVersion: String by project
+    val azureFunctionsVersion: String by project
     
-    api(azureFunctionsGroup, azureFunctionsArtifact, azureFunctionsVersion)
     api(arrowGroup, arrowCoreDataArtifact, arrowVersion)
     
     implementation(arrowGroup, arrowFxCoroutinesArtifact, arrowVersion)
@@ -49,6 +48,7 @@ dependencies {
     testImplementation(kotestGroup, kotestAssertionsArrowArtifact, kotestVersion) { exclude(arrowGroup) }
     testImplementation(kotestGroup, kotestPropertyArtifact, kotestVersion)
     testImplementation(mockkGroup, mockkArtifact, mockkVersion)
+    testImplementation(azureFunctionsGroup, azureFunctionsArtifact, azureFunctionsVersion)
 }
 
 sourceSets {
