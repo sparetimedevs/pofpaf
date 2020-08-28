@@ -20,7 +20,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.microsoft.azure.functions.HttpMethod
-import com.sparetimedevs.pofpaf.log.Level
+import com.sparetimedevs.pofpaf.test.implementation.general.log.Level
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.arbitrary.bool

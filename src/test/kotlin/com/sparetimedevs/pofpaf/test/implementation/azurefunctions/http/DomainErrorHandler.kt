@@ -20,7 +20,6 @@ import arrow.core.Either
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE
 import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE_APPLICATION_JSON
 import com.sparetimedevs.pofpaf.test.implementation.general.ERROR_MESSAGE_PREFIX
@@ -29,7 +28,7 @@ import com.sparetimedevs.pofpaf.test.implementation.general.ErrorResponse
 @Suppress("UNUSED_PARAMETER")
 suspend fun <E> handleDomainErrorWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    log: suspend (e: E) -> Either<Throwable, Unit>,
     e: E
 ): Either<Throwable, HttpResponseMessage> =
     createResponse(request, e)

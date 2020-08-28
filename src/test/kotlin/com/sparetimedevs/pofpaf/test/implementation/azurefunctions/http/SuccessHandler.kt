@@ -20,14 +20,13 @@ import arrow.core.Either
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE
 import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE_APPLICATION_JSON
 
 @Suppress("UNUSED_PARAMETER")
 suspend fun <A> handleSuccessWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    log: suspend (a: A) -> Either<Throwable, Unit>,
     a: A
 ): Either<Throwable, HttpResponseMessage> =
     Either.catch { request.createResponse(a) }

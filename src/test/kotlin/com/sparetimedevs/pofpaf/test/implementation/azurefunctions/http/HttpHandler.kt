@@ -20,26 +20,26 @@ import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.pofpaf.test.implementation.azurefunctions.log.log
+import com.sparetimedevs.pofpaf.test.implementation.general.log.Level
 
 fun <E, A> handleHttpBlocking(
     incoming: HttpRequestMessage<out Any?>,
     context: ExecutionContext,
     domainLogic: suspend () -> Either<E, A>,
-    handleSuccess: suspend (request: HttpRequestMessage<out Any?>, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, a: A) -> Either<Throwable, HttpResponseMessage> =
+    handleSuccess: suspend (request: HttpRequestMessage<out Any?>, log: suspend (a: A) -> Either<Throwable, Unit>, a: A) -> Either<Throwable, HttpResponseMessage> =
         ::handleSuccessWithDefaultHandler,
-    handleDomainError: suspend (request: HttpRequestMessage<out Any?>, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, e: E) -> Either<Throwable, HttpResponseMessage> =
+    handleDomainError: suspend (request: HttpRequestMessage<out Any?>, log: suspend (e: E) -> Either<Throwable, Unit>, e: E) -> Either<Throwable, HttpResponseMessage> =
         ::handleDomainErrorWithDefaultHandler,
-    handleSystemFailure: suspend (request: HttpRequestMessage<out Any?>, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, throwable: Throwable) -> Either<Throwable, HttpResponseMessage> =
+    handleSystemFailure: suspend (request: HttpRequestMessage<out Any?>, log: suspend (throwable: Throwable) -> Either<Throwable, Unit>, throwable: Throwable) -> Either<Throwable, HttpResponseMessage> =
         ::handleSystemFailureWithDefaultHandler,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit> =
-        { level, message -> log(context, level, message) }
+    logUnrecoverableState: suspend (throwable: Throwable) -> Either<Throwable, Unit> =
+        { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }
 ): HttpResponseMessage =
     com.sparetimedevs.pofpaf.handler.handleBlocking(
-        domainLogic = domainLogic,
-        handleSuccess = { a -> handleSuccess(incoming, log, a) },
-        handleDomainError = { e -> handleDomainError(incoming, log, e) },
-        handleSystemFailure = { throwable -> handleSystemFailure(incoming, log, throwable) },
-        log = log
+        logic = domainLogic,
+        ifSuccess = { a -> handleSuccess(incoming, { a: A -> log(context, Level.INFO, "This is a: $a") }, a) },
+        ifDomainError = { e -> handleDomainError(incoming, { e: E -> log(context, Level.WARN, "This is e: $e") }, e) },
+        ifSystemFailure = { throwable -> handleSystemFailure(incoming, { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }, throwable) },
+        ifUnrecoverableState = logUnrecoverableState
     )

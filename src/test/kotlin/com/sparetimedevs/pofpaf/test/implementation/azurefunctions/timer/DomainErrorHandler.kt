@@ -18,8 +18,7 @@ package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.timer
 
 import arrow.core.Either
 import arrow.core.right
-import com.sparetimedevs.pofpaf.log.Level
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun <E> handleDomainErrorWithDefaultHandler(timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, e: E): Either<Throwable, Unit> =
+suspend fun <E> handleDomainErrorWithDefaultHandler(timerInfo: String, log: suspend (e: E) -> Either<Throwable, Unit>, e: E): Either<Throwable, Unit> =
     Unit.right()

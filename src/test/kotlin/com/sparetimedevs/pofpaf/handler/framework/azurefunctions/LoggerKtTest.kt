@@ -17,10 +17,10 @@
 package com.sparetimedevs.pofpaf.handler.framework.azurefunctions
 
 import com.microsoft.azure.functions.ExecutionContext
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.pofpaf.test.generator.executionContextArb
 import com.sparetimedevs.pofpaf.test.generator.logLevel
 import com.sparetimedevs.pofpaf.test.implementation.azurefunctions.log.log
+import com.sparetimedevs.pofpaf.test.implementation.general.log.Level
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.StringSpec

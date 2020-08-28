@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-package com.sparetimedevs.pofpaf.log
+package com.sparetimedevs.pofpaf.test.implementation.general.log
 
-enum class Level {
-    TRACE, DEBUG, INFO, WARN, ERROR
-}
+const val THROWABLE_MESSAGE_PREFIX = "An exception was thrown. The exception is:"
