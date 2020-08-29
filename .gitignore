@@ -2,9 +2,6 @@
 /build/
 !gradle/wrapper/gradle-wrapper.jar
 
-### KotlinTest ###
-.kotlintest/
-
 ### STS ###
 .apt_generated
 .classpath

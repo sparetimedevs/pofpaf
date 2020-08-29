@@ -17,13 +17,11 @@
 package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.timer
 
 import arrow.core.Either
-import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.pofpaf.log.THROWABLE_MESSAGE_PREFIX
 
 @Suppress("UNUSED_PARAMETER")
 suspend fun handleSystemFailureWithDefaultHandler(
     timerInfo: String,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    log: suspend (throwable: Throwable) -> Either<Throwable, Unit>,
     throwable: Throwable
 ): Either<Throwable, Unit> =
-    log(Level.ERROR, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
+    log(throwable)

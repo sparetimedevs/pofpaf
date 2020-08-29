@@ -2,7 +2,7 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.Date
 
 plugins {
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.0"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.4"
     id("com.jfrog.artifactory") version "4.15.2"
@@ -41,7 +41,6 @@ dependencies {
     api(arrowGroup, arrowCoreDataArtifact, arrowVersion)
     
     implementation(arrowGroup, arrowFxCoroutinesArtifact, arrowVersion)
-    implementation(kotlin("stdlib-jdk8"))
     
     testImplementation(kotestGroup, kotestRunnerJUnit5Artifact, kotestVersion)
     testImplementation(kotestGroup, kotestAssertionsCoreArtifact, kotestVersion)

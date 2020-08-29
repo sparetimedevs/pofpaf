@@ -18,8 +18,7 @@ package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.timer
 
 import arrow.core.Either
 import arrow.core.right
-import com.sparetimedevs.pofpaf.log.Level
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun handleSuccessWithDefaultHandler(timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>): Either<Throwable, Unit> =
+suspend fun handleSuccessWithDefaultHandler(timerInfo: String, log: suspend () -> Either<Throwable, Unit>): Either<Throwable, Unit> =
     Unit.right()

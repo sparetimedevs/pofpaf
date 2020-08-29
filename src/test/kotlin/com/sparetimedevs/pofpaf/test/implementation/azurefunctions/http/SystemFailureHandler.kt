@@ -21,18 +21,17 @@ import arrow.core.flatMap
 import com.microsoft.azure.functions.HttpRequestMessage
 import com.microsoft.azure.functions.HttpResponseMessage
 import com.microsoft.azure.functions.HttpStatus
-import com.sparetimedevs.pofpaf.log.Level
-import com.sparetimedevs.pofpaf.log.THROWABLE_MESSAGE_PREFIX
 import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE
 import com.sparetimedevs.pofpaf.test.implementation.general.CONTENT_TYPE_APPLICATION_JSON
 import com.sparetimedevs.pofpaf.test.implementation.general.ErrorResponse
+import com.sparetimedevs.pofpaf.test.implementation.general.log.THROWABLE_MESSAGE_PREFIX
 
 suspend fun handleSystemFailureWithDefaultHandler(
     request: HttpRequestMessage<out Any?>,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit>,
+    log: suspend (throwable: Throwable) -> Either<Throwable, Unit>,
     throwable: Throwable
 ): Either<Throwable, HttpResponseMessage> =
-    log(Level.ERROR, "$THROWABLE_MESSAGE_PREFIX $throwable. ${throwable.message}")
+    log(throwable)
         .flatMap {
             createResponse(request, throwable)
         }

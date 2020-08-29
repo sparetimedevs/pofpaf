@@ -18,7 +18,7 @@ package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.log
 
 import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
-import com.sparetimedevs.pofpaf.log.Level
+import com.sparetimedevs.pofpaf.test.implementation.general.log.Level
 
 suspend fun log(context: ExecutionContext, level: Level, message: String): Either<Throwable, Unit> =
     Either.catch {

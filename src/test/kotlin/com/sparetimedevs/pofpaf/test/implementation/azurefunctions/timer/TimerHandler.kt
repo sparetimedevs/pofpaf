@@ -19,26 +19,26 @@ package com.sparetimedevs.pofpaf.test.implementation.azurefunctions.timer
 import arrow.core.Either
 import com.microsoft.azure.functions.ExecutionContext
 import com.sparetimedevs.pofpaf.handler.handleBlocking
-import com.sparetimedevs.pofpaf.log.Level
 import com.sparetimedevs.pofpaf.test.implementation.azurefunctions.log.log
+import com.sparetimedevs.pofpaf.test.implementation.general.log.Level
 
 fun <E> handleTimer(
     timerInfo: String,
     context: ExecutionContext,
-    domainLogic: suspend () -> Either<E, Unit>,
-    handleSuccess: suspend (timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>) -> Either<Throwable, Unit> =
+    logic: suspend () -> Either<E, Unit>,
+    handleSuccess: suspend (timerInfo: String, log: suspend () -> Either<Throwable, Unit>) -> Either<Throwable, Unit> =
         ::handleSuccessWithDefaultHandler,
-    handleDomainError: suspend (timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, e: E) -> Either<Throwable, Unit> =
+    handleDomainError: suspend (timerInfo: String, log: suspend (e: E) -> Either<Throwable, Unit>, e: E) -> Either<Throwable, Unit> =
         ::handleDomainErrorWithDefaultHandler,
-    handleSystemFailure: suspend (timerInfo: String, log: suspend (level: Level, message: String) -> Either<Throwable, Unit>, throwable: Throwable) -> Either<Throwable, Unit> =
+    handleSystemFailure: suspend (timerInfo: String, log: suspend (throwable: Throwable) -> Either<Throwable, Unit>, throwable: Throwable) -> Either<Throwable, Unit> =
         ::handleSystemFailureWithDefaultHandler,
-    log: suspend (level: Level, message: String) -> Either<Throwable, Unit> =
-        { level, message -> log(context, level, message) }
+    logUnrecoverableState: suspend (throwable: Throwable) -> Either<Throwable, Unit> =
+        { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable") }
 ): Unit =
     handleBlocking(
-        domainLogic = domainLogic,
-        handleSuccess = { _ -> handleSuccess(timerInfo, log) },
-        handleDomainError = { e -> handleDomainError(timerInfo, log, e) },
-        handleSystemFailure = { throwable -> handleSystemFailure(timerInfo, log, throwable) },
-        log = log
+        logic = logic,
+        ifSuccess = { _ -> handleSuccess(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
+        ifDomainError = { e -> handleDomainError(timerInfo, { e: E -> log(context, Level.WARN, "This is e: $e") }, e) },
+        ifSystemFailure = { throwable -> handleSystemFailure(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }, throwable) },
+        ifUnrecoverableState = logUnrecoverableState
     )
