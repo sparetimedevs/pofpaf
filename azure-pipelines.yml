@@ -14,11 +14,10 @@ pr:
 stages:
 - stage: BuildAndRunUnitTests
   displayName: Build and run unit tests
+  pool:
+    vmImage: 'ubuntu-18.04'
   jobs:
   - job: BuildAndRunUnitTests
-
-    pool:
-      vmImage: 'ubuntu-18.04'
 
     steps:
     - task: Gradle@2
@@ -36,11 +35,10 @@ stages:
 - stage: PublishSnapshot
   displayName: Publish SNAPSHOT
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), in(variables['Build.Reason'], 'Manual')))
+  pool:
+    vmImage: 'ubuntu-18.04'
   jobs:
   - job: PublishSnapshot
-
-    pool:
-      vmImage: 'ubuntu-18.04'
 
     steps:
     - task: DownloadSecureFile@1
@@ -54,6 +52,7 @@ stages:
         targetType: 'inline'
         script: |
           echo 'Moving gradle.property file.'
+          mkdir ~/.gradle
           mv -f $(gradle_properties.secureFilePath) ~/.gradle/
         failOnStderr: true
 
