@@ -2,7 +2,7 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.Date
 
 plugins {
-    kotlin("jvm") version "1.4.0"
+    kotlin("jvm") version "1.4.10"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.4"
     id("com.jfrog.artifactory") version "4.15.2"
@@ -15,7 +15,6 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url = uri("https://dl.bintray.com/arrow-kt/arrow-kt/") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/") } // for SNAPSHOT builds
 }
 
 dependencies {
