@@ -27,6 +27,7 @@ import com.sparetimedevs.pofpaf.test.generator.httpRequestMessageGenerator
 import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsAnyLeft
 import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsAnyRight
 import com.sparetimedevs.pofpaf.test.generator.suspendFunThatReturnsEitherAnyOrAnyOrThrows
+import com.sparetimedevs.pofpaf.test.generator.suspendFunThatThrows
 import com.sparetimedevs.pofpaf.test.generator.suspendFunThatThrowsFatalThrowable
 import com.sparetimedevs.pofpaf.test.implementation.azurefunctions.http.handleDomainErrorWithDefaultHandler
 import com.sparetimedevs.pofpaf.test.implementation.azurefunctions.http.handleSuccessWithDefaultHandler
@@ -58,12 +59,11 @@ class HttpHandlerKtTest : StringSpec({
             
             val response =
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
-                    ifDomainError = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             
             response.shouldBeInstanceOf<HttpResponseMessage>()
@@ -82,18 +82,17 @@ class HttpHandlerKtTest : StringSpec({
             
             shouldThrow<Throwable> {
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
-                    ifDomainError = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             }
         }
     }
     
-    "Should yield an HttpResponseMessage when an exception is thrown in the ifSuccess supplied function." {
+    "Should yield an HttpResponseMessage when an exception is thrown in the success supplied function." {
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
@@ -104,12 +103,11 @@ class HttpHandlerKtTest : StringSpec({
             
             val response =
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { a -> throwException(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
-                    ifDomainError = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { a -> throwException(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             
             response.shouldBeInstanceOf<HttpResponseMessage>()
@@ -119,7 +117,7 @@ class HttpHandlerKtTest : StringSpec({
         }
     }
     
-    "Should yield an HttpResponseMessage when an exception is thrown in the ifDomainError supplied function." {
+    "Should yield an HttpResponseMessage when an exception is thrown in the error supplied function." {
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
@@ -130,12 +128,11 @@ class HttpHandlerKtTest : StringSpec({
             
             val response =
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
-                    ifDomainError = { e -> throwException(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
+                    error = { e -> throwException(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             
             response.shouldBeInstanceOf<HttpResponseMessage>()
@@ -145,56 +142,29 @@ class HttpHandlerKtTest : StringSpec({
         }
     }
     
-    "Should yield an HttpResponseMessage when an exception is thrown in the ifSystemFailure supplied function." {
+    "Should throw a Throwable when any exception is thrown in the throwable supplied function." {
         checkAll(
             Arb.httpRequestMessageGenerator(),
             Arb.executionContextArb(),
-            Arb.suspendFunThatReturnsAnyLeft()
-        ) { request: HttpRequestMessage<String?>,
-            context: ExecutionContext,
-            domainLogic: suspend () -> Either<Any, Any> ->
-            
-            val response =
-                handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
-                    ifDomainError = { e -> throwException(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
-                )
-            
-            response.shouldBeInstanceOf<HttpResponseMessage>()
-            response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR.value()
-            response.getHeader(CONTENT_TYPE) shouldBe CONTENT_TYPE_APPLICATION_JSON
-            response.body shouldBe ErrorResponse("$THROWABLE_MESSAGE_PREFIX $exception")
-        }
-    }
-    
-    "Should throw a Throwable when any exception is thrown in the ifHandlingCaseThrows supplied function." {
-        checkAll(
-            Arb.httpRequestMessageGenerator(),
-            Arb.executionContextArb(),
-            Arb.suspendFunThatReturnsEitherAnyOrAnyOrThrows()
+            Arb.suspendFunThatThrows(),
         ) { request: HttpRequestMessage<String?>,
             context: ExecutionContext,
             domainLogic: suspend () -> Either<Any, Any> ->
             
             shouldThrow<Throwable> {
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { throwable -> throwException(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, throwable) },
-                    ifDomainError = { throwable -> throwException(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, throwable) },
-                    ifSystemFailure = { throwable -> throwException(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> throwException(request, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { a -> handleSuccessWithDefaultHandler(request, { a: Any -> log(context, Level.INFO, "This is a: $a") }, a) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(request, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> throwException(request, { throwable: Any -> log(context, Level.WARN, "This is throwable: $throwable") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             }
         }
     }
 })
 
-private val exception = RuntimeException("An Exception is thrown while handling the result of the domain logic.")
+private val exception = RuntimeException("An Exception is thrown while handling the result of the domain f.")
 
 @Suppress("UNUSED_PARAMETER")
 private suspend fun <T> throwException(

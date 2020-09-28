@@ -36,17 +36,16 @@ class HandlerKtTest : StringSpec({
         checkAll(
             Arb.suspendFunThatReturnsEitherAnyOrAnyOrThrows(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             val result =
                 handle(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             
             result shouldBe returnObject
@@ -57,98 +56,75 @@ class HandlerKtTest : StringSpec({
         checkAll(
             Arb.suspendFunThatThrowsFatalThrowable(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             shouldThrow<Throwable> {
                 handle(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             }
         }
     }
     
-    "handle should yield a result when an exception is thrown in the ifSuccess supplied function" {
+    "handle should yield a result when an exception is thrown in the success supplied function" {
         checkAll(
             Arb.suspendFunThatReturnsAnyRight(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             val result =
                 handle(
-                    logic = logic,
-                    ifSuccess = ::throwException,
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = ::throwException,
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             
             result shouldBe returnObject
         }
     }
     
-    "handle should yield a result when an exception is thrown in the ifDomainError supplied function" {
+    "handle should yield a result when an exception is thrown in the error supplied function" {
         checkAll(
             Arb.suspendFunThatReturnsAnyLeft(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             val result =
                 handle(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = ::throwException,
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = ::throwException,
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             
             result shouldBe returnObject
         }
     }
     
-    "handle should yield a result when an exception is thrown in the ifSystemFailure supplied function" {
+    "handle should throw a Throwable when any exception is thrown in the throwable supplied function" {
         checkAll(
             Arb.suspendFunThatThrows(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
-            
-            val result =
-                handle(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = ::throwException,
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
-                )
-            
-            result shouldBe returnObject
-        }
-    }
     
-    "handle should throw a Throwable when any exception is thrown in the ifHandlingCaseThrows supplied function" {
-        checkAll(
-            Arb.suspendFunThatReturnsEitherAnyOrAnyOrThrows()
-        ) { logic: suspend () -> Either<Any, Any> ->
-            
             shouldThrow<Throwable> {
                 handle(
-                    logic = logic,
-                    ifSuccess = ::throwException,
-                    ifDomainError = ::throwException,
-                    ifSystemFailure = ::throwException,
-                    ifHandlingCaseThrows = ::throwException,
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = ::throwException,
+                    unrecoverableState = ::handleWithPureFunction
                 )
             }
         }
@@ -158,17 +134,16 @@ class HandlerKtTest : StringSpec({
         checkAll(
             Arb.suspendFunThatReturnsEitherAnyOrAnyOrThrows(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             val result =
                 handleBlocking(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             
             result shouldBe returnObject
@@ -179,98 +154,75 @@ class HandlerKtTest : StringSpec({
         checkAll(
             Arb.suspendFunThatThrowsFatalThrowable(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             shouldThrow<Throwable> {
                 handleBlocking(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             }
         }
     }
     
-    "handleBlocking should yield a result when an exception is thrown in the ifSuccess supplied function" {
+    "handleBlocking should yield a result when an exception is thrown in the success supplied function" {
         checkAll(
             Arb.suspendFunThatReturnsAnyRight(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             val result =
                 handleBlocking(
-                    logic = logic,
-                    ifSuccess = ::throwException,
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = ::throwException,
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             
             result shouldBe returnObject
         }
     }
     
-    "handleBlocking should yield a result when an exception is thrown in the ifDomainError supplied function" {
+    "handleBlocking should yield a result when an exception is thrown in the error supplied function" {
         checkAll(
             Arb.suspendFunThatReturnsAnyLeft(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
             
             val result =
                 handleBlocking(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = ::throwException,
-                    ifSystemFailure = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = ::throwException,
+                    throwable = { throwable -> handleWithPureFunction(throwable, returnObject) },
+                    unrecoverableState = ::handleWithPureFunction
                 )
             
             result shouldBe returnObject
         }
     }
     
-    "handleBlocking should yield a result when an exception is thrown in the ifSystemFailure supplied function" {
+    "handleBlocking should throw a Throwable when any exception is thrown in the throwable supplied function" {
         checkAll(
             Arb.suspendFunThatThrows(),
             Arb.any()
-        ) { logic: suspend () -> Either<Any, Any>,
+        ) { f: suspend () -> Either<Any, Any>,
             returnObject: Any ->
-            
-            val result =
-                handleBlocking(
-                    logic = logic,
-                    ifSuccess = { a -> handleWithPureFunction(a, returnObject) },
-                    ifDomainError = { e -> handleWithPureFunction(e, returnObject) },
-                    ifSystemFailure = ::throwException,
-                    ifHandlingCaseThrows = { throwable -> handleWithPureFunction(throwable, returnObject) },
-                    ifUnrecoverableState = ::handleWithPureFunction
-                )
-            
-            result shouldBe returnObject
-        }
-    }
-    
-    "handleBlocking should throw a Throwable when any exception is thrown in the ifHandlingCaseThrows supplied function" {
-        checkAll(
-            Arb.suspendFunThatReturnsEitherAnyOrAnyOrThrows()
-        ) { logic: suspend () -> Either<Any, Any> ->
             
             shouldThrow<Throwable> {
                 handleBlocking(
-                    logic = logic,
-                    ifSuccess = ::throwException,
-                    ifDomainError = ::throwException,
-                    ifSystemFailure = ::throwException,
-                    ifHandlingCaseThrows = ::throwException,
-                    ifUnrecoverableState = ::handleWithPureFunction
+                    f = f,
+                    success = { a -> handleWithPureFunction(a, returnObject) },
+                    error = { e -> handleWithPureFunction(e, returnObject) },
+                    throwable = ::throwException,
+                    unrecoverableState = ::handleWithPureFunction
                 )
             }
         }
@@ -289,4 +241,4 @@ suspend fun handleWithPureFunction(throwable: Throwable): Either<Throwable, Unit
 private suspend fun <A> throwException(
     a: A
 ): Either<Throwable, Any> =
-    throw RuntimeException("An Exception is thrown while handling the result of the domain logic.")
+    throw RuntimeException("An Exception is thrown while handling the result of the supplied function.")
