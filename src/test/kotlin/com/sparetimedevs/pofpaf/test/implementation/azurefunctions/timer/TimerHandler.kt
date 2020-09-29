@@ -36,9 +36,9 @@ fun <E> handleTimer(
         { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable") }
 ): Unit =
     handleBlocking(
-        logic = logic,
-        ifSuccess = { _ -> handleSuccess(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
-        ifDomainError = { e -> handleDomainError(timerInfo, { e: E -> log(context, Level.WARN, "This is e: $e") }, e) },
-        ifSystemFailure = { throwable -> handleSystemFailure(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }, throwable) },
-        ifUnrecoverableState = logUnrecoverableState
+        f = logic,
+        success = { _ -> handleSuccess(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
+        error = { e -> handleDomainError(timerInfo, { e: E -> log(context, Level.WARN, "This is e: $e") }, e) },
+        throwable = { throwable -> handleSystemFailure(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }, throwable) },
+        unrecoverableState = logUnrecoverableState
     )

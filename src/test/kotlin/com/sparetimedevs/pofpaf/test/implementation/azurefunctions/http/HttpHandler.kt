@@ -37,9 +37,9 @@ fun <E, A> handleHttpBlocking(
         { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }
 ): HttpResponseMessage =
     com.sparetimedevs.pofpaf.handler.handleBlocking(
-        logic = domainLogic,
-        ifSuccess = { a -> handleSuccess(incoming, { a: A -> log(context, Level.INFO, "This is a: $a") }, a) },
-        ifDomainError = { e -> handleDomainError(incoming, { e: E -> log(context, Level.WARN, "This is e: $e") }, e) },
-        ifSystemFailure = { throwable -> handleSystemFailure(incoming, { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }, throwable) },
-        ifUnrecoverableState = logUnrecoverableState
+        f = domainLogic,
+        success = { a -> handleSuccess(incoming, { a: A -> log(context, Level.INFO, "This is a: $a") }, a) },
+        error = { e -> handleDomainError(incoming, { e: E -> log(context, Level.WARN, "This is e: $e") }, e) },
+        throwable = { throwable -> handleSystemFailure(incoming, { throwable: Throwable -> log(context, Level.ERROR, "This is throwable: $throwable") }, throwable) },
+        unrecoverableState = logUnrecoverableState
     )

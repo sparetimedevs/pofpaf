@@ -49,19 +49,18 @@ class TimerHandlerKtTest : StringSpec({
             
             val result =
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { _ -> handleSuccessWithDefaultHandler(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
-                    ifDomainError = { e -> handleDomainErrorWithDefaultHandler(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { _ -> handleSuccessWithDefaultHandler(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             
             result.shouldBeInstanceOf<Unit>()
         }
     }
     
-    "Should yield a Unit when an exception is thrown in the ifSuccess supplied function." {
+    "Should yield a Unit when an exception is thrown in the success supplied function." {
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
@@ -72,19 +71,18 @@ class TimerHandlerKtTest : StringSpec({
             
             val result =
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { _ -> throwException(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
-                    ifDomainError = { e -> handleDomainErrorWithDefaultHandler(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { _ -> throwException(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             
             result.shouldBeInstanceOf<Unit>()
         }
     }
     
-    "Should yield a Unit when an exception is thrown in the ifDomainError supplied function." {
+    "Should yield a Unit when an exception is thrown in the error supplied function." {
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
@@ -95,19 +93,18 @@ class TimerHandlerKtTest : StringSpec({
             
             val result =
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { _ -> handleSuccessWithDefaultHandler(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
-                    ifDomainError = { e -> throwException(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { _ -> handleSuccessWithDefaultHandler(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
+                    error = { e -> throwException(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             
             result.shouldBeInstanceOf<Unit>()
         }
     }
     
-    "Should yield a Unit when an exception is thrown in the ifSystemFailure supplied function." {
+    "Should throw a Throwable when any exception is thrown in the throwable supplied function." {
         checkAll(
             Arb.string(maxSize = 500),
             Arb.executionContextArb(),
@@ -116,44 +113,20 @@ class TimerHandlerKtTest : StringSpec({
             context: ExecutionContext,
             domainLogic: suspend () -> Either<Any, Unit> ->
             
-            val result =
-                handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { _ -> handleSuccessWithDefaultHandler(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
-                    ifDomainError = { e -> handleDomainErrorWithDefaultHandler(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
-                    ifSystemFailure = { throwable -> throwException(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> handleSystemFailureWithDefaultHandler(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
-                )
-            
-            result.shouldBeInstanceOf<Unit>()
-        }
-    }
-    
-    "Should throw a Throwable when any exception is thrown in the ifHandlingCaseThrows supplied function." {
-        checkAll(
-            Arb.string(maxSize = 500),
-            Arb.executionContextArb(),
-            Arb.suspendFunThatReturnsEitherAnyOrUnitOrThrows()
-        ) { timerInfo: String,
-            context: ExecutionContext,
-            domainLogic: suspend () -> Either<Any, Unit> ->
-            
             shouldThrow<Throwable> {
                 handleBlocking(
-                    logic = domainLogic,
-                    ifSuccess = { _ -> throwException(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
-                    ifDomainError = { throwable -> throwException(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, throwable) },
-                    ifSystemFailure = { throwable -> throwException(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifHandlingCaseThrows = { throwable -> throwException(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
-                    ifUnrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
+                    f = domainLogic,
+                    success = { _ -> handleSuccessWithDefaultHandler(timerInfo, { log(context, Level.INFO, "This did happen.") }) },
+                    error = { e -> handleDomainErrorWithDefaultHandler(timerInfo, { e: Any -> log(context, Level.WARN, "This is e: $e") }, e) },
+                    throwable = { throwable -> throwException(timerInfo, { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }, throwable) },
+                    unrecoverableState = { throwable: Throwable -> log(context, Level.ERROR, "Log the throwable: $throwable.") }
                 )
             }
         }
     }
 })
 
-private val exception = RuntimeException("An Exception is thrown while handling the result of the domain logic.")
+private val exception = RuntimeException("An Exception is thrown while handling the result of the domain f.")
 
 @Suppress("UNUSED_PARAMETER")
 private suspend fun throwException(timerInfo: String, log: suspend () -> Either<Throwable, Unit>): Either<Throwable, Unit> =
