@@ -13,14 +13,14 @@ Pofpaf promotes the use of functional programming by making applicable functions
 #### How do you add the Pofpaf library to your project?
 ##### Gradle
 ```
-implementation 'com.sparetimedevs:pofpaf:0.0.1'
+implementation 'com.sparetimedevs:pofpaf:0.1.0'
 ```
 ##### Maven
 ```
 <dependency>
     <groupId>com.sparetimedevs</groupId>
     <artifactId>pofpaf</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
